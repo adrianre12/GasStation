@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36221.1 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GasStation", "GasStation.csproj", "{0C81B69A-7235-4AD4-A8B3-510C557A3AD1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0C81B69A-7235-4AD4-A8B3-510C557A3AD1}.Debug|x64.ActiveCfg = Debug|x64
+		{0C81B69A-7235-4AD4-A8B3-510C557A3AD1}.Debug|x64.Build.0 = Debug|x64
+		{0C81B69A-7235-4AD4-A8B3-510C557A3AD1}.Release|x64.ActiveCfg = Release|x64
+		{0C81B69A-7235-4AD4-A8B3-510C557A3AD1}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {16ED5855-CA27-4642-B11C-1621ACA71EB2}
+	EndGlobalSection
+EndGlobal
