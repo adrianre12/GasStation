@@ -1,10 +1,11 @@
 ﻿using Sandbox.Common.ObjectBuilders;
+using Sandbox.Game.EntityComponents;
 using Sandbox.ModAPI;
 using VRage.Game.Components;
 using VRage.ModAPI;
 using VRage.ObjectBuilders;
 
-namespace SEtest
+namespace Catopia.GasStation
 {
     [MyEntityComponentDescriptor(typeof(MyObjectBuilder_VirtualMass), false, new[] { "TestBlockLarge", "TestBlockSmall" })]
     internal class TestBlock : MyGameLogicComponent

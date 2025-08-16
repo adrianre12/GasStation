@@ -1,10 +1,10 @@
 ﻿using VRage.Utils;
 
-namespace SEtest
+namespace Catopia.GasStation
 {
     public static class Log
     {
-        const string Prefix = "SETest";
+        const string Prefix = "GasStation";
 
         public static bool DebugLog;
         public static void Msg(string msg)

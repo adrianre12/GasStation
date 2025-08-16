@@ -15,7 +15,7 @@ using VRage.ModAPI;
 using VRage.ObjectBuilders;
 
 
-namespace SEtest
+namespace Catopia.GasStation
 {
     [MyEntityComponentDescriptor(typeof(MyObjectBuilder_ShipConnector), false, new[] { "GasPump" })]
     internal class GasPumpBlock : MyGameLogicComponent
