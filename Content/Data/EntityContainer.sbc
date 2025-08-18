@@ -9,9 +9,9 @@
             </Id>
             <DefaultComponents>
 				<Component BuilderType="MyObjectBuilder_Inventory" SubtypeId="Freight1" ForceCreate="true"/>
+				<Component BuilderType="MyObjectBuilder_LcdSurfaceComponent" ForceCreate="true"/>
 			</DefaultComponents>
         </Container>
-
-
+		
     </EntityContainers>
 </Definitions>

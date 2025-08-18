@@ -16,11 +16,12 @@ namespace Catopia.GasStation
     public class ControllerBlock : MyGameLogicComponent
     {
         private IMyTextPanel block;
-        private MyInventory inventory;
+        internal MyInventory Inventory;
         private MyDefinitionId id = new MyDefinitionId(typeof(MyObjectBuilder_PhysicalObject), "SpaceCredit");
-        private GasPump gasPump = new GasPump();
+        private GasPump gasPump;
         private bool enableTransfer;
         private IMyShipConnector tradeConnector;
+        private MyInventory cashInventory;
         private IMyCubeGrid stationCubeGrid;
 
         public override void Init(MyObjectBuilder_EntityBase objectBuilder)
@@ -41,24 +42,49 @@ namespace Catopia.GasStation
                 return;
 
             stationCubeGrid = block.CubeGrid;
-            inventory = block.GetInventory() as MyInventory;
+            cashInventory = block.GetInventory() as MyInventory;
+
+            gasPump = new GasPump(stationCubeGrid, cashInventory);
 
             CheckSCVisability();
 
             NeedsUpdate |= MyEntityUpdateEnum.EACH_100TH_FRAME;
         }
+
         public override void UpdateAfterSimulation100()
         {
             Log.Msg($"Tick {block.CubeGrid.DisplayName}");
             CheckSCVisability();
 
-            if (tradeConnector == null)
+            if (tradeConnector == null )
             {
-                FindTradeConnector();
+                UpdateTradeConnector();
+                return;
+            }  
+            
+            if (gasPump.SorurceTanksCount == 0)
+            {
+                if (!gasPump.TryFindSourceTanks(tradeConnector))
+                {
+                    WriteText($"No source tanks found with\nidentifier: {gasPump.GasPumpIdentifier}");
+                }
+                WriteText($"Source Tanks found: {gasPump.SorurceTanksCount}");
                 return;
             }
 
-            WriteText("Connector Found");
+            if(tradeConnector.IsConnected && gasPump.TargetTanksCount == 0)
+            {
+                if (!gasPump.TryFindTargetTanks(tradeConnector)){
+                    WriteText($"No target tanks found on ship");
+                }
+                WriteText($"Target Tanks found: {gasPump.TargetTanksCount}");
+
+                return;
+            }
+
+
+
+            //WriteText($"enableTransfer = {enableTransfer}");
         }
 
         public override void OnAddedToScene()
@@ -66,7 +92,7 @@ namespace Catopia.GasStation
             base.OnAddedToScene();
             Log.Msg($"OnAddedToScene {block.CubeGrid.DisplayName}");
             block.ContentType = VRage.Game.GUI.TextPanel.ContentType.TEXT_AND_IMAGE;
-            block.WriteText("Hello World1");
+            block.WriteText("Booting ....");
 
         }
 
@@ -90,7 +116,7 @@ namespace Catopia.GasStation
 
         private void CheckSCVisability()
         {
-            var scAmount = (float)inventory.GetItemAmount(id);
+            var scAmount = (float)cashInventory.GetItemAmount(id);
             Log.Msg($"{scAmount}");
             try
             {
@@ -112,7 +138,7 @@ namespace Catopia.GasStation
             enableTransfer = !enableTransfer;
         }
 
-        private void FindTradeConnector()
+        internal void UpdateTradeConnector()
         {
             tradeConnector = null;
 
@@ -123,23 +149,32 @@ namespace Catopia.GasStation
                 var connectorBlock = connector.GameLogic.GetAs<ConnectorBlock>();
                 if (connectorBlock == null)
                 {
-                    Log.Msg($"No Gamelogic found on {connector.CustomName}");
-                    WriteText($"No Gamelogic found on {connector.CustomName}");
+                    WriteText($"Connector: '{connector.CustomName}'\nGamelogic not found.");
                     break;
+                }
+
+                if (!connector.Enabled)
+                {
+                    WriteText($"Connector: '{connector.CustomName}'\nNot Enabled.");
+                    tradeConnector = null;
+                    connectorBlock.ControllerBlock = null;
+                    return;
                 }
 
                 if (connector.GetValue<bool>("Trading"))
                 {
                     tradeConnector = connector;
                     connectorBlock.ControllerBlock = this;
+                    WriteText($"Connector: '{connector.CustomName}'\nFound.");
                     return;
                 }
-                Log.Msg($"Connector {connector.CustomName} is not in Trade mode");
-                WriteText($"Connector {connector.CustomName} is not in Trade mode");
+                WriteText($"Connector: '{connector.CustomName}'\nNot in Trade mode.");
                 tradeConnector = null;
                 connectorBlock.ControllerBlock = null;
+                return;
             }
 
+            WriteText($"No Gas Pump Connector found with\nidentifier: {gasPump.GasPumpIdentifier}");
             return;
         }
     }

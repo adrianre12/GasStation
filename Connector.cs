@@ -48,13 +48,11 @@ namespace Catopia.GasStation
         private void Block_EnabledChanged(IMyTerminalBlock obj)
         {
             Log.Msg($"EnabledChanged Enabled = {block.Enabled}");
-/*            if (!block.Enabled)
+            if (!block.Enabled)
             {
-                targetH2Tanks.Clear();
+                ControllerBlock.UpdateTradeConnector();
                 return;
             }
-
-            FindSourceTanks();*/
         }
 
         private void Block_IsConnectedChanged(IMyShipConnector obj)

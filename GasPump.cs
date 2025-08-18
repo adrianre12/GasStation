@@ -25,7 +25,11 @@ namespace Catopia.GasStation
         private static MyDefinitionId SCDefId = MyDefinitionId.Parse("MyObjectBuilder_PhysicalObject/SpaceCredit");
         private static MyDefinitionId H2DefId = MyDefinitionId.Parse("MyObjectBuilder_GasProperties/Hydrogen");
 
-        internal IMyShipConnector TradeConnector;
+        internal int SorurceTanksCount { get { return sourceH2Tanks.Count;  } }
+        internal int TargetTanksCount { get { return targetH2Tanks.Count; } }
+
+        private MyInventory cashInventory;
+        private IMyCubeGrid stationCubeGrid;
 
         public enum TransferResult
         {
@@ -36,9 +40,10 @@ namespace Catopia.GasStation
             Error
         }
 
-        public GasPump()
+        public GasPump( IMyCubeGrid cubeGrid, MyInventory inventory)
         {
-            TradeConnector = null;
+            cashInventory = inventory;
+            stationCubeGrid = cubeGrid;
         }
 
         public TransferResult BatchTransfer()
@@ -152,29 +157,27 @@ namespace Catopia.GasStation
             if (amount == 0)
                 return true;
 
-            MyInventory otherInventory = (MyInventory)TradeConnector.OtherConnector.GetInventory();
-            if (otherInventory == null || otherInventory.ItemCount == 0)
+            if (cashInventory.ItemCount == 0)
                 return false;
-            return otherInventory.RemoveItemsOfType(amount, SCDefId).ToIntSafe() == amount;
+            return cashInventory.RemoveItemsOfType(amount, SCDefId).ToIntSafe() == amount;
         }
 
         private int FindCashAmount()
         {
-            IMyInventory otherInventory = TradeConnector.OtherConnector.GetInventory();
-            if (otherInventory == null || otherInventory.ItemCount == 0)
+            if (cashInventory.ItemCount == 0)
                 return 0;
-            return otherInventory.GetItemAmount(SCDefId).ToIntSafe();
+            return cashInventory.GetItemAmount(SCDefId).ToIntSafe();
         }
 
-        private bool TryFindTargetTanks()
+        internal bool TryFindTargetTanks(IMyShipConnector tradeConnector)
         {
             targetH2Tanks.Clear();
-            if (TradeConnector == null)
+            if (tradeConnector == null || !tradeConnector.IsConnected)
                 return false;
 
-            IMyShipConnector targetConector = TradeConnector.OtherConnector;
+            IMyShipConnector targetConector = tradeConnector.OtherConnector;
             MyCubeGrid connectedGrid = (MyCubeGrid)(targetConector?.CubeGrid);
-            if (!TradeConnector.IsConnected || connectedGrid == null)
+            if (!tradeConnector.IsConnected || connectedGrid == null)
             {
                 Log.Msg("Trade connector is not connected.");
                 return false;
@@ -208,15 +211,15 @@ namespace Catopia.GasStation
             return targetH2Tanks.Count > 0;
         }
 
-        private bool TryFindSourceTanks()
+        internal bool TryFindSourceTanks(IMyShipConnector tradeConnector)
         {
             sourceH2Tanks.Clear();
-            if (TradeConnector == null)
+            if (stationCubeGrid == null)
                 return false;
 
-            foreach (var gasTank in TradeConnector.CubeGrid.GetFatBlocks<Sandbox.ModAPI.IMyGasTank>())
+            foreach (var gasTank in stationCubeGrid.GetFatBlocks<Sandbox.ModAPI.IMyGasTank>())
             {
-                if (!TradeConnector.GetInventory().IsConnectedTo(gasTank.GetInventory()))
+                if (!tradeConnector.GetInventory().IsConnectedTo(gasTank.GetInventory()))
                     continue;
                 Log.Msg($">>> grid displayNameText={gasTank.DisplayNameText} customName={gasTank.CustomName}");
                 if (gasTank.CustomName.Contains(GasPumpIdentifier) && gasTank.IsWorking && !gasTank.Stockpile)
