@@ -5,7 +5,7 @@
             <Public>false</Public>
             <Id>
                 <TypeId>Component</TypeId>
-                <SubtypeId>TestRestrictedConstruction</SubtypeId>
+                <SubtypeId>RestrictedConstruction</SubtypeId>
             </Id>
             <DisplayName>Restricted Component</DisplayName>
             <Icon>Textures\GUI\Icons\Components\construction_restricted.dds</Icon>

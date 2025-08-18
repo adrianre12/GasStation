@@ -6,11 +6,12 @@
                 <TypeId>GuiBlockCategoryDefinition</TypeId>
                 <SubtypeId/>
             </Id>
-            <DisplayName>Admin</DisplayName>
-            <Name>Admin</Name>
+            <DisplayName>GasStation</DisplayName>
+            <Name>GasStation</Name>
 			<StrictSearch>true</StrictSearch>
             <ItemIds>
-                <string>VirtualMass/TestBlockLarge</string>
+                <string>TextPanel/GasStationController</string>
+				<string>ShipConnector/GasPump</string>
             </ItemIds>
         </Category>
     </CategoryClasses>

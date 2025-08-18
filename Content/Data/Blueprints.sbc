@@ -4,14 +4,14 @@
     <Blueprint>
       <Id>
         <TypeId>BlueprintDefinition</TypeId>
-        <SubtypeId>TestRestrictedConstruction</SubtypeId>
+        <SubtypeId>RestrictedConstruction</SubtypeId>
       </Id>
       <DisplayName>DisplayName_Item_ConstructionComponent</DisplayName>
       <Icon>Textures\GUI\Icons\Components\construction_restricted.dds</Icon>
       <Prerequisites>
         <Item Amount="8" TypeId="Ingot" SubtypeId="Iron" />
       </Prerequisites>
-      <Result Amount="1" TypeId="Component" SubtypeId="TestRestrictedConstruction" />
+      <Result Amount="1" TypeId="Component" SubtypeId="RestrictedConstruction" />
       <BaseProductionTimeInSeconds>1</BaseProductionTimeInSeconds>
       <IsPrimary>true</IsPrimary>
     </Blueprint>
