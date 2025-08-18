@@ -26,10 +26,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </AdditionalFiles>
     <AdditionalFiles Remove="Content\*\**\*.cs" />
-    <AdditionalFiles Remove="Content\Data\CubeBlocks\**" />
-    <Compile Remove="Content\Data\CubeBlocks\**" />
-    <EmbeddedResource Remove="Content\Data\CubeBlocks\**" />
-    <None Remove="Content\Data\CubeBlocks\**" />
     <AdditionalFiles Remove="Content\Other content folders" />
     <AdditionalFiles Remove="Content\Data\SBC files can go here" />
     <None Remove="thumb.png" />
