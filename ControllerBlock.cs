@@ -12,6 +12,7 @@ using VRage.Game.Entity;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRage.ObjectBuilders;
+using VRageMath;
 
 namespace Catopia.GasStation
 {
@@ -30,7 +31,7 @@ namespace Catopia.GasStation
         private string dockedShipName;
         private List<string> screenText = new List<string>();
         private int booting = 2;
-        private StringBuilder screenStringBuilder = new StringBuilder();
+        private StringBuilder screenSB = new StringBuilder();
 
         private enum DockedState
         {
@@ -186,7 +187,26 @@ namespace Catopia.GasStation
                 return;
             }
 
-            
+
+            switch (dockedState)
+            {
+                case DockedState.Docked:
+                    {
+                        ScreenDocked();
+                        break;
+                    }
+                case DockedState.UnDocked:
+                    {
+                        ScreenUndocked();
+                        break;
+                    }
+
+            }
+
+            //remove cash out of gasPump, call transfer with total transfer request, caluclate and remove cash from ammount transfered.
+
+            // think abut sleep mode.
+
 
             //WriteText("01234567890123456789012345678901234567890123456789012345678901234567890123456789");
             //WriteText($"enableTransfer = {enableTransfer}");
@@ -208,13 +228,76 @@ namespace Catopia.GasStation
             if (screenText.Count > 11)
                 screenText.RemoveAt(0);
             screenText.Add($"{text}\n");
-            screenStringBuilder.Clear();
+            screenSB.Clear();
             foreach( var line in screenText )
-                screenStringBuilder.Append(line);
-            block.WriteText(screenStringBuilder.ToString());
+                screenSB.Append(line);
+            block.WriteText(screenSB.ToString());
         }
 
+        internal void ScreenDocked()
+        {
+            var cashSC = (int)cashInventory.GetItemAmount(id);
+            var freeSpaceKL = (int)gasPump.TargetH2Tanks.TotalFree / 1000;
+            var maxFillKL = (int)Math.Min(freeSpaceKL, cashSC / gasPump.PricePerKL);
 
+            screenSB.Clear();
+            //               "12345678901234567890123456789012345678901"
+            screenSB.Append($"Station: '{block.CubeGrid.DisplayName}'\n");
+            screenSB.Append($"H2 Available: {(int)gasPump.SourceH2Tanks.TotalAvailable / 1000}KL\n");
+            screenSB.Append($"Price SC/KL: {gasPump.PricePerKL} \n");
+            screenSB.Append($"SC Inserted: {cashSC}\n");
+            screenSB.Append($"\n");
+            screenSB.Append($"Ship: '{dockedShipName}'\n");
+            screenSB.Append($"Free Space: {freeSpaceKL}KL in {gasPump.TargetTanksCount} tanks\n");
+            screenSB.Append($"Total Price: {freeSpaceKL * gasPump.PricePerKL}\n");            
+            screenSB.Append($"Max Fill KL {maxFillKL}\n");
+            screenSB.Append($"Total Price: {(int)maxFillKL * gasPump.PricePerKL}\n");
+            screenSB.Append($"\n");
+            screenSB.Append($"Press button to start/stop {enableTransfer}");
+
+            block.WriteText(screenSB.ToString());
+        }
+        internal void ScreenUndocked()
+        {
+            var cashSC = (int)cashInventory.GetItemAmount(id);
+            screenSB.Clear();
+            //               "12345678901234567890123456789012345678901"
+            screenSB.Append($"Station: '{block.CubeGrid.DisplayName}'\n");
+            screenSB.Append($"H2 Available: {(int)gasPump.SourceH2Tanks.TotalAvailable/1000}KL\n");
+            screenSB.Append($"Price SC/KL: {gasPump.PricePerKL} \n");
+            screenSB.Append($"SC Inserted: {cashSC}\n");
+            screenSB.Append($"\n");
+            screenSB.Append($"Dock ship and insert SC to continue .\n");
+            screenSB.Append($"\n");
+            screenSB.Append($"\n");
+            screenSB.Append($"\n");
+            screenSB.Append($"\n");
+            screenSB.Append($"\n");
+            screenSB.Append($"\n");
+            //screenSB.Append($"12345678901234567890123456789012345678901");
+
+            block.WriteText(screenSB.ToString());
+        }
+
+/*        internal void ScreenX()
+        {
+            screenSB.Clear();
+            //               "12345678901234567890123456789012345678901"
+            screenSB.Append($"1\n");
+            screenSB.Append($"2\n");
+            screenSB.Append($"3\n");
+            screenSB.Append($"4\n");
+            screenSB.Append($"5\n");
+            screenSB.Append($"6\n");
+            screenSB.Append($"7\n");
+            screenSB.Append($"8\n");
+            screenSB.Append($"9\n");
+            screenSB.Append($"10\n");
+            screenSB.Append($"11\n");
+            screenSB.Append($"12345678901234567890123456789012345678901");
+
+            block.WriteText(screenSB.ToString());
+        }*/
 
         private void CheckSCVisability()
         {
@@ -234,7 +317,7 @@ namespace Catopia.GasStation
         }
 
         internal void ToggleTransfer()
-        {
+        {      
             enableTransfer = !enableTransfer;
         }
 

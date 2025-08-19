@@ -18,8 +18,11 @@ namespace Catopia.GasStation
         private const int KLPerTick = 80;
 
         private GasTanks targetH2Tanks = new GasTanks();
+        internal GasTanks TargetH2Tanks { get {  return targetH2Tanks; } }
         private GasTanks sourceH2Tanks = new GasTanks();
-        private int pricePerKL = 1;
+        internal GasTanks SourceH2Tanks {  get { return sourceH2Tanks; } }
+
+        internal int PricePerKL = 1;
         internal string GasPumpIdentifier = "[GS1]";
 
         private static MyDefinitionId SCDefId = MyDefinitionId.Parse("MyObjectBuilder_PhysicalObject/SpaceCredit");
@@ -61,13 +64,10 @@ namespace Catopia.GasStation
             return  targetH2Tanks.TanksMarkedForClose();
         }
 
-        public TransferResult BatchTransfer()
+        public TransferResult BatchTransfer(int cashSC)
         {
-            int cashSC;
-            if ((cashSC = FindCashAmount()) == 0)
+            if (cashSC == 0)
             {
-                Log.Msg("No money, disable transfer");
-                //enableTransfer = false;
                 return TransferResult.NotEnoughCash;
             }
 
@@ -110,7 +110,7 @@ namespace Catopia.GasStation
 
         private TransferResult StartGasTransfer(int cashSC)
         {
-            int canAffordKL = cashSC / pricePerKL;
+            int canAffordKL = cashSC / PricePerKL;
 
             if (canAffordKL == 0)
                 return TransferResult.NotEnoughCash;
@@ -124,7 +124,7 @@ namespace Catopia.GasStation
             TransferResult transferResult = TransferGas(transferRequestKL, out transferedKL);
             Log.Msg($"TransferGas transferResult={transferResult.ToString()}");
 
-            int removeCash = transferedKL * pricePerKL;
+            int removeCash = transferedKL * PricePerKL;
 
             if (!TryRemoveCash(removeCash))
             {
