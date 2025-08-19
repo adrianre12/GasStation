@@ -78,6 +78,16 @@ namespace Catopia.GasStation
 
         public int Count { get { return tanks.Count; } }
 
+        public bool TanksMarkedForClose()
+        {
+            foreach ( var gasTank in  tanks)
+            {
+                if (gasTank.tank.MarkedForClose)
+                    return true;
+            }
+            return false;
+        }
+
         public double TotalCapacity { get {
                 double totalCapacity = 0;
                 foreach (var tank in tanks)

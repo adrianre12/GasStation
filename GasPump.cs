@@ -20,7 +20,7 @@ namespace Catopia.GasStation
         private GasTanks targetH2Tanks = new GasTanks();
         private GasTanks sourceH2Tanks = new GasTanks();
         private int pricePerKL = 1;
-        internal string GasPumpIdentifier = "GasPump1";
+        internal string GasPumpIdentifier = "[GS1]";
 
         private static MyDefinitionId SCDefId = MyDefinitionId.Parse("MyObjectBuilder_PhysicalObject/SpaceCredit");
         private static MyDefinitionId H2DefId = MyDefinitionId.Parse("MyObjectBuilder_GasProperties/Hydrogen");
@@ -49,6 +49,16 @@ namespace Catopia.GasStation
         public void TargetTanksReset()
         {
             targetH2Tanks.Clear();
+        }
+
+        public bool SourceTanksMarkedForClose()
+        {
+            return sourceH2Tanks.TanksMarkedForClose();
+        }
+
+        public bool TargetTanksMarkedForClose()
+        {
+            return  targetH2Tanks.TanksMarkedForClose();
         }
 
         public TransferResult BatchTransfer()

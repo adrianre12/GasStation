@@ -39,18 +39,18 @@ namespace Catopia.GasStation
         public override void UpdateOnceBeforeFrame()
         {
             base.UpdateOnceBeforeFrame();
-            NeedsUpdate = MyEntityUpdateEnum.EACH_100TH_FRAME;
-            cubeGrid = block.CubeGrid;
-            block.IsConnectedChanged += Block_IsConnectedChanged;
-            block.EnabledChanged += Block_EnabledChanged;
+            //NeedsUpdate = MyEntityUpdateEnum.EACH_100TH_FRAME;
+            //cubeGrid = block.CubeGrid;
+           // block.IsConnectedChanged += Block_IsConnectedChanged;
+           // block.EnabledChanged += Block_EnabledChanged;
         }
 
         private void Block_EnabledChanged(IMyTerminalBlock obj)
         {
-            Log.Msg($"EnabledChanged Enabled = {block.Enabled}");
-/*            if (!block.Enabled)
+/*            Log.Msg($"EnabledChanged Enabled = {block.Enabled}");
+            if (!block.Enabled)
             {
-                ControllerBlock.UpdateTradeConnector();
+                ControllerBlock.UpdateDockedState();
                 return;
             }*/
         }
@@ -77,9 +77,6 @@ namespace Catopia.GasStation
             //Log.Msg($"Tick {block.CubeGrid.DisplayName} block.IsWorking={block.IsWorking} tradingMode={tradingMode}");
 /*            if (!block.IsConnected || !block.IsWorking || !tradingMode || !enableTransfer || targetH2Tanks.Count == 0)
                 return;*/
-
- 
-
         }
 
 

@@ -3,6 +3,7 @@ using Sandbox.Game;
 using Sandbox.ModAPI;
 using Sandbox.ModAPI.Interfaces;
 using System;
+using System.Collections.Generic;
 using System.Text;
 using VRage;
 using VRage.Game;
@@ -25,7 +26,10 @@ namespace Catopia.GasStation
         private IMyShipConnector tradeConnector;
         private MyInventory cashInventory;
         private IMyCubeGrid stationCubeGrid;
-        private DockedState shipConnected = DockedState.Unknown;
+        private DockedState dockedState = DockedState.Unknown;
+        private List<string> screenText = new List<string>();
+        private int booting = 2;
+        private StringBuilder screenStringBuilder = new StringBuilder();
 
         private enum DockedState
         {
@@ -65,58 +69,93 @@ namespace Catopia.GasStation
 
             CheckSCVisability();
 
+            block.ContentType = VRage.Game.GUI.TextPanel.ContentType.TEXT_AND_IMAGE;
+            block.WriteText(".");
             block.Font = "Debug";
-            block.FontSize = 1f;
+            block.FontSize = 0.85f;
 
             NeedsUpdate |= MyEntityUpdateEnum.EACH_100TH_FRAME;
             block.EnabledChanged += Block_EnabledChanged;
+
+            block.CubeGrid.OnBlockRemoved += CubeGrid_OnBlockRemoved;
+        }
+
+        private void CubeGrid_OnBlockRemoved(IMySlimBlock obj)
+        {
+            //WriteText("Checking Removed Blocks");
+            if (tradeConnector != null && tradeConnector.MarkedForClose)
+            {
+                Reset();
+                WriteText("Trade Connector Removed");
+                return;
+            }
+            if (gasPump != null && gasPump.SourceTanksMarkedForClose())
+            {
+                Reset();
+                WriteText("Gas Tank Removed");
+            }
         }
 
         private void Block_EnabledChanged(IMyTerminalBlock obj)
         {
             Log.Msg($"EnabledChanged Enabled = {block.Enabled}");
-                        if (!block.Enabled)
-                        {
-                            Reset();
-                            return;
-                        }
+            if (!block.Enabled)
+                Reset();
         }
 
         public override void UpdateAfterSimulation100()
         {
-
-            Log.Msg($"Tick {block.CubeGrid.DisplayName} enabled={block.Enabled}");
+           // Log.Msg($"Tick {block.CubeGrid.DisplayName} enabled={block.Enabled}");
             CheckSCVisability();
             if (!block.Enabled)
                 return;
 
-            if (tradeConnector == null || !tradeConnector.IsWorking )
+            if(gasPump.TargetTanksMarkedForClose()) //cant detect grid change ove trade connector
             {
-                Log.Msg(">>trade");
-                UpdateTradeConnector();
-                shipConnected = DockedState.Unknown; //force missmatch
+                Reset();
+                WriteText("Ship Tank Removed");
                 return;
-            }  
+            }
+
+            if (booting > 0)
+            {
+                WriteText("Booting....");
+                booting--;
+                return;
+            }
+
+            if (tradeConnector == null || tradeConnector.MarkedForClose)
+            {
+                FindTradeConnector();
+                dockedState = DockedState.Unknown; //force missmatch
+                enableTransfer = false;
+                return;
+            } 
+            
+            if (!CheckTradeConnector())
+            {
+                dockedState = DockedState.Unknown;
+                enableTransfer = false;
+                return;
+            }
             
             if (gasPump.SorurceTanksCount == 0)
             {
-                Log.Msg(">>sourcetanks=0");
-
                 if (!gasPump.TryFindSourceTanks(tradeConnector))
                 {
-                    WriteText($"No source tanks found with\nidentifier: {gasPump.GasPumpIdentifier}");
+                    WriteText($"No source tanks found with identifier: {gasPump.GasPumpIdentifier}");
+                    enableTransfer = false;
+                    return;
                 }
                 WriteText($"Source Tanks found: {gasPump.SorurceTanksCount}");
                 return;
             }
 
-            var dockedState = DockedStateFromBool(tradeConnector.IsConnected);
-            if ( dockedState != shipConnected)
+            var newDockedState = DockedStateFromBool(tradeConnector.IsConnected);
+            if ( newDockedState != dockedState)
             {
-                Log.Msg("isconnected changed");
-
-                shipConnected = dockedState;
-                switch (shipConnected)
+                dockedState = newDockedState;
+                switch (dockedState)
                 {
                     case DockedState.Docked:
                         {
@@ -133,9 +172,10 @@ namespace Catopia.GasStation
                         }
                     case DockedState.UnDocked:
                         {
-                            Log.Msg(">>target tanks reset");
+                            //Log.Msg(">>target tanks reset");
                             WriteText($"No Ship Docked");
                             gasPump.TargetTanksReset();
+                            enableTransfer = false;
                             break;
                         }
                 }
@@ -144,52 +184,33 @@ namespace Catopia.GasStation
 
             
 
-            /*            var sb = new StringBuilder();
-                        sb.Append("01234567890123456789012345678901234567890123456789012345678901234567890123456789\n");
-                        for (int i = 1; i < 10; i++)
-                        {
-                            sb.Append($"{i.ToString()}\n");
-                        }
-                        WriteText(sb.ToString());*/
+            //WriteText("01234567890123456789012345678901234567890123456789012345678901234567890123456789");
             //WriteText($"enableTransfer = {enableTransfer}");
         }
+
 
         private void Reset()
         {
             tradeConnector = null;
             gasPump = new GasPump(stationCubeGrid, cashInventory);
             enableTransfer = false;
-            shipConnected = DockedState.Unknown;
-            block.WriteText("Booting ....");
+            dockedState = DockedState.Unknown;
+            booting = 2;
+            screenText.Clear();
         }
 
-        public override void OnAddedToScene()
+        internal void WriteText(string text)
         {
-            base.OnAddedToScene();
-            Log.Msg($"OnAddedToScene {block.CubeGrid.DisplayName}");
-            block.ContentType = VRage.Game.GUI.TextPanel.ContentType.TEXT_AND_IMAGE;
-            block.WriteText("Booting ....");
-
+            if (screenText.Count > 11)
+                screenText.RemoveAt(0);
+            screenText.Add($"{text}\n");
+            screenStringBuilder.Clear();
+            foreach( var line in screenText )
+                screenStringBuilder.Append(line);
+            block.WriteText(screenStringBuilder.ToString());
         }
 
 
-        public void WriteText(string text)
-        {
-            block.WriteText(text);
-        }
-
-        public override void OnRemovedFromScene()
-        {
-            Log.Msg($"OnRemovedFromScene {block.CubeGrid.DisplayName}");
-
-        }
-
-        public override void MarkForClose()
-        {
-            base.MarkForClose();
-            Log.Msg($"MarkForClose {block.CubeGrid.DisplayName}");
-
-        }
 
         private void CheckSCVisability()
         {
@@ -213,7 +234,7 @@ namespace Catopia.GasStation
             enableTransfer = !enableTransfer;
         }
 
-        internal void UpdateTradeConnector()
+        private void FindTradeConnector()
         {
             tradeConnector = null;
 
@@ -221,36 +242,32 @@ namespace Catopia.GasStation
             {
                 if (!connector.CustomName.Contains(gasPump.GasPumpIdentifier))
                     continue;
-                var connectorBlock = connector.GameLogic.GetAs<ConnectorBlock>();
-                if (connectorBlock == null)
-                {
-                    WriteText($"Connector: '{connector.CustomName}'\nGamelogic not found.");
-                    break;
-                }
+                tradeConnector = connector;
+                WriteText($"Connector: '{tradeConnector.CustomName}'");
 
-                if (!connector.Enabled)
-                {
-                    WriteText($"Connector: '{connector.CustomName}'\nNot Enabled.");
-                    tradeConnector = null;
-                    connectorBlock.ControllerBlock = null;
-                    return;
-                }
-
-                if (connector.GetValue<bool>("Trading"))
-                {
-                    tradeConnector = connector;
-                    connectorBlock.ControllerBlock = this;
-                    WriteText($"Connector: '{connector.CustomName}'\nFound.");
-                    return;
-                }
-                WriteText($"Connector: '{connector.CustomName}'\nNot in Trade mode.");
-                tradeConnector = null;
-                connectorBlock.ControllerBlock = null;
                 return;
             }
 
             WriteText($"No Gas Pump Connector found with\nidentifier: {gasPump.GasPumpIdentifier}");
             return;
+        }
+
+        private bool CheckTradeConnector() {
+            if (!tradeConnector.IsWorking)
+                {
+                    WriteText($"Connector: '{tradeConnector.CustomName}' Not Enabled.");
+                    return false;
+                }
+
+                if (!tradeConnector.GetValue<bool>("Trading"))
+                {
+                    WriteText($"Connector: '{tradeConnector.CustomName}' Not in Trade mode.");
+                    return false;
+                }
+
+                //WriteText($"Connector: '{tradeConnector.CustomName}'");
+            return true; ;
+
         }
     }
 }
