@@ -46,6 +46,11 @@ namespace Catopia.GasStation
             stationCubeGrid = cubeGrid;
         }
 
+        public void TargetTanksReset()
+        {
+            targetH2Tanks.Clear();
+        }
+
         public TransferResult BatchTransfer()
         {
             int cashSC;

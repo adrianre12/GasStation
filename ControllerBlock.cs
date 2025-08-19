@@ -3,6 +3,8 @@ using Sandbox.Game;
 using Sandbox.ModAPI;
 using Sandbox.ModAPI.Interfaces;
 using System;
+using System.Text;
+using VRage;
 using VRage.Game;
 using VRage.Game.Components;
 using VRage.Game.Entity;
@@ -23,6 +25,21 @@ namespace Catopia.GasStation
         private IMyShipConnector tradeConnector;
         private MyInventory cashInventory;
         private IMyCubeGrid stationCubeGrid;
+        private DockedState shipConnected = DockedState.Unknown;
+
+        private enum DockedState
+        {
+            Unknown,
+            UnDocked,
+            Docked
+        }
+
+        private DockedState DockedStateFromBool(bool value)
+        {
+            if (value)
+                return DockedState.Docked;
+            return DockedState.UnDocked;
+        }
 
         public override void Init(MyObjectBuilder_EntityBase objectBuilder)
         {
@@ -48,22 +65,43 @@ namespace Catopia.GasStation
 
             CheckSCVisability();
 
+            block.Font = "Debug";
+            block.FontSize = 1f;
+
             NeedsUpdate |= MyEntityUpdateEnum.EACH_100TH_FRAME;
+            block.EnabledChanged += Block_EnabledChanged;
+        }
+
+        private void Block_EnabledChanged(IMyTerminalBlock obj)
+        {
+            Log.Msg($"EnabledChanged Enabled = {block.Enabled}");
+                        if (!block.Enabled)
+                        {
+                            Reset();
+                            return;
+                        }
         }
 
         public override void UpdateAfterSimulation100()
         {
-            Log.Msg($"Tick {block.CubeGrid.DisplayName}");
-            CheckSCVisability();
 
-            if (tradeConnector == null )
+            Log.Msg($"Tick {block.CubeGrid.DisplayName} enabled={block.Enabled}");
+            CheckSCVisability();
+            if (!block.Enabled)
+                return;
+
+            if (tradeConnector == null || !tradeConnector.IsWorking )
             {
+                Log.Msg(">>trade");
                 UpdateTradeConnector();
+                shipConnected = DockedState.Unknown; //force missmatch
                 return;
             }  
             
             if (gasPump.SorurceTanksCount == 0)
             {
+                Log.Msg(">>sourcetanks=0");
+
                 if (!gasPump.TryFindSourceTanks(tradeConnector))
                 {
                     WriteText($"No source tanks found with\nidentifier: {gasPump.GasPumpIdentifier}");
@@ -72,19 +110,57 @@ namespace Catopia.GasStation
                 return;
             }
 
-            if(tradeConnector.IsConnected && gasPump.TargetTanksCount == 0)
+            var dockedState = DockedStateFromBool(tradeConnector.IsConnected);
+            if ( dockedState != shipConnected)
             {
-                if (!gasPump.TryFindTargetTanks(tradeConnector)){
-                    WriteText($"No target tanks found on ship");
-                }
-                WriteText($"Target Tanks found: {gasPump.TargetTanksCount}");
+                Log.Msg("isconnected changed");
 
+                shipConnected = dockedState;
+                switch (shipConnected)
+                {
+                    case DockedState.Docked:
+                        {
+                            if (gasPump.TargetTanksCount == 0)
+                            {
+                                if (!gasPump.TryFindTargetTanks(tradeConnector))
+                                {
+                                    WriteText($"No target tanks found on ship");
+                                }
+                                WriteText($"Target Tanks found: {gasPump.TargetTanksCount}");
+                            }
+
+                            break;
+                        }
+                    case DockedState.UnDocked:
+                        {
+                            Log.Msg(">>target tanks reset");
+                            WriteText($"No Ship Docked");
+                            gasPump.TargetTanksReset();
+                            break;
+                        }
+                }
                 return;
             }
 
+            
 
-
+            /*            var sb = new StringBuilder();
+                        sb.Append("01234567890123456789012345678901234567890123456789012345678901234567890123456789\n");
+                        for (int i = 1; i < 10; i++)
+                        {
+                            sb.Append($"{i.ToString()}\n");
+                        }
+                        WriteText(sb.ToString());*/
             //WriteText($"enableTransfer = {enableTransfer}");
+        }
+
+        private void Reset()
+        {
+            tradeConnector = null;
+            gasPump = new GasPump(stationCubeGrid, cashInventory);
+            enableTransfer = false;
+            shipConnected = DockedState.Unknown;
+            block.WriteText("Booting ....");
         }
 
         public override void OnAddedToScene()
@@ -95,6 +171,7 @@ namespace Catopia.GasStation
             block.WriteText("Booting ....");
 
         }
+
 
         public void WriteText(string text)
         {
@@ -117,13 +194,11 @@ namespace Catopia.GasStation
         private void CheckSCVisability()
         {
             var scAmount = (float)cashInventory.GetItemAmount(id);
-            Log.Msg($"{scAmount}");
             try
             {
                 MyEntitySubpart subpart;
                 if (Entity.TryGetSubpart("SpaceCredit", out subpart)) // subpart does not exist when block is in build stage
                 {
-                    Log.Msg($"{subpart.Name}");
                     subpart.Render.Visible = scAmount > 0.001;
                 }
             }

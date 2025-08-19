@@ -48,11 +48,11 @@ namespace Catopia.GasStation
         private void Block_EnabledChanged(IMyTerminalBlock obj)
         {
             Log.Msg($"EnabledChanged Enabled = {block.Enabled}");
-            if (!block.Enabled)
+/*            if (!block.Enabled)
             {
                 ControllerBlock.UpdateTradeConnector();
                 return;
-            }
+            }*/
         }
 
         private void Block_IsConnectedChanged(IMyShipConnector obj)
