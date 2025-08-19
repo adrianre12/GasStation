@@ -184,8 +184,9 @@ namespace Catopia.GasStation
             return cashInventory.GetItemAmount(SCDefId).ToIntSafe();
         }
 
-        internal bool TryFindTargetTanks(IMyShipConnector tradeConnector)
+        internal bool TryFindTargetTanks(IMyShipConnector tradeConnector, out string shipName)
         {
+            shipName = null; ;
             targetH2Tanks.Clear();
             if (tradeConnector == null || !tradeConnector.IsConnected)
                 return false;
@@ -222,7 +223,8 @@ namespace Catopia.GasStation
                 }
 
             }
-            Log.Msg($"targetTanks found = {targetH2Tanks.Count}");
+            //Log.Msg($"targetTanks found = {targetH2Tanks.Count}");
+            shipName = connectedGrid.DisplayName;
             return targetH2Tanks.Count > 0;
         }
 

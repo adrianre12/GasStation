@@ -27,6 +27,7 @@ namespace Catopia.GasStation
         private MyInventory cashInventory;
         private IMyCubeGrid stationCubeGrid;
         private DockedState dockedState = DockedState.Unknown;
+        private string dockedShipName;
         private List<string> screenText = new List<string>();
         private int booting = 2;
         private StringBuilder screenStringBuilder = new StringBuilder();
@@ -159,20 +160,23 @@ namespace Catopia.GasStation
                 {
                     case DockedState.Docked:
                         {
+                            
                             if (gasPump.TargetTanksCount == 0)
                             {
-                                if (!gasPump.TryFindTargetTanks(tradeConnector))
+                                if (!gasPump.TryFindTargetTanks(tradeConnector, out dockedShipName))
                                 {
                                     WriteText($"No target tanks found on ship");
                                 }
-                                WriteText($"Target Tanks found: {gasPump.TargetTanksCount}");
+                                WriteText($"Docked Ship: '{dockedShipName}'");
+                                WriteText($"Ship Tanks found: {gasPump.TargetTanksCount}");
                             }
-
+                            
                             break;
                         }
                     case DockedState.UnDocked:
                         {
                             //Log.Msg(">>target tanks reset");
+                            dockedShipName = null;
                             WriteText($"No Ship Docked");
                             gasPump.TargetTanksReset();
                             enableTransfer = false;
