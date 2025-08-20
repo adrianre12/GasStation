@@ -16,60 +16,60 @@ namespace Catopia.GasStation
             /// <summary>
             /// Total capacity of the tank
             /// </summary>
-            public float Capacity { get { return tank.Capacity; } }
+            public double Capacity { get { return (double)tank.Capacity; } }
 
             /// <summary>
             /// Available gas in tank
             /// </summary>
-            public float Available { get { return (float)(tank.Capacity * tank.FilledRatio); } }
+            public double Available { get { return (tank.Capacity * tank.FilledRatio); } }
 
             /// <summary>
             /// Free capacity in the tank
             /// </summary>
-            public float Free { get { return (float)(tank.Capacity * (1 - tank.FilledRatio)); } }
+            public double Free { get { return (tank.Capacity * (1 - tank.FilledRatio)); } }
 
             /// <summary>
             /// Add gas to tank
             /// </summary>
             /// <param name="Amount"></param>
-            /// <returns>the amount gas not added</returns>
-            public double Fill(double Amount)
+            /// <returns>the amount gas added</returns>
+            public double Fill(int Amount)
             {
                 if (tank.FilledRatio == 1)
-                    return Amount;
+                    return 0;
 
-                double newRatio = Amount / tank.Capacity + tank.FilledRatio;
+                double newRatio = (double)Amount / (double)tank.Capacity + tank.FilledRatio;
 
                 if (newRatio > 1)
                 {
-                    var remainder = Amount - Free;
+                    var tmp = Free;
                     tank.ChangeFilledRatio(1,true);
-                    return remainder;
+                    return tmp;
                 }
 
                 tank.ChangeFilledRatio(newRatio,true);
-                return 0;
+                return Amount;
             }
 
             /// <summary>
             /// Remove gas from tank
             /// </summary>
             /// <param name="Amount"></param>
-            /// <returns>the amount of gas not removed</returns>
-            public double Drain(double Amount)
+            /// <returns>the amount of gas removed</returns>
+            public double Drain(int Amount)
             {
                 if (tank.FilledRatio == 0)
-                    return Amount;
+                    return 0;
 
-                double newRatio = tank.FilledRatio - Amount / tank.Capacity ;
+                double newRatio = tank.FilledRatio - (double)Amount / (double)tank.Capacity ;
                 if (newRatio < 0)
                 {
-                    var remainder = Amount - Available;
+                    var tmp = Available;
                     tank.ChangeFilledRatio(0, true);
-                    return remainder;
+                    return tmp;
                 }
                 tank.ChangeFilledRatio(newRatio, true);
-                return 0;
+                return Amount;
                 
             }
         }
@@ -125,35 +125,41 @@ namespace Catopia.GasStation
         /// <summary>
         /// Add gas to tanks
         /// </summary>
-        /// <param name="AmountRequest"></param>
         /// <returns>the amount gas added</returns>
-        public double Fill(double AmountRequest)
+        public int Fill(int AmountRequest, int tankSpread)
         {
             double amount = AmountRequest;
+            int ammountPerTank = AmountRequest/tankSpread;
+            int remainder = AmountRequest % tankSpread;
             foreach (var tank in tanks)
             {
-                amount = tank.Fill(amount);
+                amount -= tank.Fill(ammountPerTank + remainder);
+                remainder = 0;
                 if (amount <= 0)
                     break;
             }
-            return AmountRequest - amount;
+            return AmountRequest - (int)amount;
         }
 
         /// <summary>
         /// Remove gas from tank
         /// </summary>
-        /// <param name="AmountRequest"></param>
         /// <returns>the amount of gas removed</returns>
-        public double Drain(double AmountRequest)
+        public int Drain(int AmountRequest, int tankSpread)
         {
             double amount = AmountRequest;
+            int ammountPerTank = AmountRequest / tankSpread;
+            int remainder = AmountRequest % tankSpread;
+            Log.Msg($"Drain AmountRequest={AmountRequest} ammountPerTank={ammountPerTank} remainder={remainder}");
             foreach (var tank in tanks)
             {
-                amount = tank.Drain(amount);
+                amount -= tank.Drain(ammountPerTank + remainder);
+                Log.Msg($"amount={amount}");
+                remainder = 0;
                 if (amount <= 0)
                     break;
             }
-            return AmountRequest - amount;
+            return AmountRequest - (int)amount;
         }
     }
 }

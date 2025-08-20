@@ -65,7 +65,7 @@ namespace Catopia.GasStation
             block = Entity as IMyTextPanel;
 
             NeedsUpdate = MyEntityUpdateEnum.BEFORE_NEXT_FRAME;
-
+            Log.DebugLog = true;
         }
 
         public override void UpdateOnceBeforeFrame()
@@ -90,7 +90,7 @@ namespace Catopia.GasStation
 
             NeedsUpdate |= MyEntityUpdateEnum.EACH_100TH_FRAME;
             block.EnabledChanged += Block_EnabledChanged;
-
+            block.IsWorkingChanged += Block_IsWorkingChanged;
             block.CubeGrid.OnBlockRemoved += CubeGrid_OnBlockRemoved;
         }
 
@@ -115,9 +115,15 @@ namespace Catopia.GasStation
             }
         }
 
+        private void Block_IsWorkingChanged(IMyCubeBlock obj)
+        {
+            Log.Msg($"IsWorkingChanged IsWorking = {block.IsWorking}");
+            if (!block.IsWorking)
+                Reset();
+        }
         private void Block_EnabledChanged(IMyTerminalBlock obj)
         {
-            Log.Msg($"EnabledChanged Enabled = {block.Enabled}");
+            //Log.Msg($"EnabledChanged Enabled = {block.Enabled}");
             if (!block.Enabled)
                 Reset();
         }
@@ -126,9 +132,9 @@ namespace Catopia.GasStation
         {
             enableTransferButton = false;
 
-            // Log.Msg($"Tick {block.CubeGrid.DisplayName} enabled={block.Enabled}");
+            //Log.Msg($"Tick {block.CubeGrid.DisplayName} IsWorking={block.IsWorking}");
             CheckSCVisability();
-            if (!block.Enabled)
+            if (!block.IsWorking)
                 return;
 
             if (gasPump.TargetTanksMarkedForClose()) //cant detect grid change ove trade connector
