@@ -94,7 +94,8 @@ namespace Catopia.GasStation
             block.CubeGrid.OnBlockRemoved += CubeGrid_OnBlockRemoved;
         }
 
-        private void SetEmissives(Color colour){
+        private void SetEmissives(Color colour)
+        {
             block.SetEmissiveParts(EMISSIVE_MATERIAL_NAME, colour, 1f);
         }
 
@@ -130,7 +131,7 @@ namespace Catopia.GasStation
             if (!block.Enabled)
                 return;
 
-            if(gasPump.TargetTanksMarkedForClose()) //cant detect grid change ove trade connector
+            if (gasPump.TargetTanksMarkedForClose()) //cant detect grid change ove trade connector
             {
                 Reset();
                 WriteText("Ship Tank Removed");
@@ -150,15 +151,15 @@ namespace Catopia.GasStation
                 dockedState = DockedState.Unknown; //force missmatch
                 enableTransfer = false;
                 return;
-            } 
-            
+            }
+
             if (!CheckTradeConnector())
             {
                 dockedState = DockedState.Unknown;
                 enableTransfer = false;
                 return;
             }
-            
+
             if (gasPump.SorurceTanksCount == 0)
             {
                 if (!gasPump.TryFindSourceTanks(tradeConnector))
@@ -172,14 +173,14 @@ namespace Catopia.GasStation
             }
 
             var newDockedState = DockedStateFromBool(tradeConnector.IsConnected);
-            if ( newDockedState != dockedState)
+            if (newDockedState != dockedState)
             {
                 dockedState = newDockedState;
                 switch (dockedState)
                 {
                     case DockedState.Docked:
                         {
-                            
+
                             if (gasPump.TargetTanksCount == 0)
                             {
                                 if (!gasPump.TryFindTargetTanks(tradeConnector, out dockedShipName))
@@ -189,7 +190,7 @@ namespace Catopia.GasStation
                                 WriteText($"Docked Ship: '{dockedShipName}'");
                                 WriteText($"Ship Tanks found: {gasPump.TargetTanksCount}");
                             }
-                            
+
                             break;
                         }
                     case DockedState.UnDocked:
@@ -212,7 +213,7 @@ namespace Catopia.GasStation
             {
                 case DockedState.Docked:
                     {
-                        ScreenDocked(cashSC,freeSpaceKL,maxFillKL);
+                        ScreenDocked(cashSC, freeSpaceKL, maxFillKL);
                         enableTransferButton = maxFillKL > 0;
                         break;
                     }
@@ -223,41 +224,27 @@ namespace Catopia.GasStation
                     }
             }
 
-            if (enableTransferButton)
-            {
-                if (enableTransfer)
-                {
-                    SetEmissives(GREEN);
-                    switch (gasPump.BatchTransfer(cashSC))
-                    {
-                        case GasPump.TransferResult.Continue:
-                            {
-                                break;
-                            }
-                        default:
-                            {
-                                enableTransfer = false;
-                                break;
-                            }
-                    }
-                }
-                else
-                {
-                    SetEmissives(MUSTARD);
-                }
-            }
-            else
-            {
+            if (!enableTransferButton)
                 enableTransfer = false;
-                SetEmissives(RED);
+
+            if (enableTransfer)
+            {
+                switch (gasPump.BatchTransfer(cashSC))
+                {
+                    case GasPump.TransferResult.Continue:
+                        {
+                            break;
+                        }
+                    default:
+                        {
+                            enableTransfer = false;
+                            break;
+                        }
+                }
             }
 
-
+            UpdateEmissives();
             // think abut sleep mode.
-
-
-            //WriteText("01234567890123456789012345678901234567890123456789012345678901234567890123456789");
-            //WriteText($"enableTransfer = {enableTransfer}");
         }
 
 
@@ -278,7 +265,7 @@ namespace Catopia.GasStation
                 screenText.RemoveAt(0);
             screenText.Add($"{text}\n");
             screenSB.Clear();
-            foreach( var line in screenText )
+            foreach (var line in screenText)
                 screenSB.Append(line);
             block.WriteText(screenSB.ToString());
         }
@@ -294,13 +281,19 @@ namespace Catopia.GasStation
             screenSB.Append($"\n");
             screenSB.Append($"Ship: '{dockedShipName}'\n");
             screenSB.Append($"Free Space: {freeSpaceKL}KL in {gasPump.TargetTanksCount} tanks\n");
-            screenSB.Append($"Max Price: SC {freeSpaceKL * gasPump.PricePerKL}\n");            
+            screenSB.Append($"Max Price: SC {freeSpaceKL * gasPump.PricePerKL}\n");
             screenSB.Append($"Max Fill: {maxFillKL}KL\n");
             screenSB.Append($"Total Price: SC {(int)maxFillKL * gasPump.PricePerKL}\n");
             screenSB.Append($"\n");
-            string tmp = enableTransfer ? "Stop" : "Start";
-            screenSB.Append($"Press button to {tmp}");
-
+            if (cashSC == 0)
+            {
+                screenSB.Append($"Insert Space Credits");
+            }
+            else
+            {
+                string tmp = enableTransfer ? "Stop" : "Start";
+                screenSB.Append($"Press button to {tmp}");
+            }
             block.WriteText(screenSB.ToString());
         }
         internal void ScreenUndocked(int cashSC)
@@ -308,7 +301,7 @@ namespace Catopia.GasStation
             screenSB.Clear();
             //               "12345678901234567890123456789012345678901"
             screenSB.Append($"Station: '{block.CubeGrid.DisplayName}'\n");
-            screenSB.Append($"H2 Available: {(int)gasPump.SourceH2Tanks.TotalAvailable/1000}KL\n");
+            screenSB.Append($"H2 Available: {(int)gasPump.SourceH2Tanks.TotalAvailable / 1000}KL\n");
             screenSB.Append($"Price SC/KL: SC {gasPump.PricePerKL} \n");
             screenSB.Append($"SC Inserted: SC {cashSC}\n");
             screenSB.Append($"\n");
@@ -324,25 +317,25 @@ namespace Catopia.GasStation
             block.WriteText(screenSB.ToString());
         }
 
-/*        internal void ScreenX()
-        {
-            screenSB.Clear();
-            //               "12345678901234567890123456789012345678901"
-            screenSB.Append($"1\n");
-            screenSB.Append($"2\n");
-            screenSB.Append($"3\n");
-            screenSB.Append($"4\n");
-            screenSB.Append($"5\n");
-            screenSB.Append($"6\n");
-            screenSB.Append($"7\n");
-            screenSB.Append($"8\n");
-            screenSB.Append($"9\n");
-            screenSB.Append($"10\n");
-            screenSB.Append($"11\n");
-            screenSB.Append($"12345678901234567890123456789012345678901");
+        /*        internal void ScreenX()
+                {
+                    screenSB.Clear();
+                    //               "12345678901234567890123456789012345678901"
+                    screenSB.Append($"1\n");
+                    screenSB.Append($"2\n");
+                    screenSB.Append($"3\n");
+                    screenSB.Append($"4\n");
+                    screenSB.Append($"5\n");
+                    screenSB.Append($"6\n");
+                    screenSB.Append($"7\n");
+                    screenSB.Append($"8\n");
+                    screenSB.Append($"9\n");
+                    screenSB.Append($"10\n");
+                    screenSB.Append($"11\n");
+                    screenSB.Append($"12345678901234567890123456789012345678901");
 
-            block.WriteText(screenSB.ToString());
-        }*/
+                    block.WriteText(screenSB.ToString());
+                }*/
 
         private void CheckSCVisability()
         {
@@ -362,8 +355,27 @@ namespace Catopia.GasStation
         }
 
         internal void ToggleTransfer()
-        {      
-            enableTransfer = enableTransferButton &&!enableTransfer;
+        {
+            enableTransfer = enableTransferButton && !enableTransfer;
+            UpdateEmissives();
+        }
+
+        internal void UpdateEmissives()
+        {
+            if (!enableTransferButton)
+            {
+                enableTransfer = false;
+                SetEmissives(RED);
+                return;
+            }
+
+            if (enableTransfer)
+            {
+                SetEmissives(GREEN);
+                return;
+            }
+
+            SetEmissives(MUSTARD);
         }
 
         private void FindTradeConnector()
@@ -384,20 +396,21 @@ namespace Catopia.GasStation
             return;
         }
 
-        private bool CheckTradeConnector() {
+        private bool CheckTradeConnector()
+        {
             if (!tradeConnector.IsWorking)
-                {
-                    WriteText($"Connector: '{tradeConnector.CustomName}' Not Enabled.");
-                    return false;
-                }
+            {
+                WriteText($"Connector: '{tradeConnector.CustomName}' Not Enabled.");
+                return false;
+            }
 
-                if (!tradeConnector.GetValue<bool>("Trading"))
-                {
-                    WriteText($"Connector: '{tradeConnector.CustomName}' Not in Trade mode.");
-                    return false;
-                }
+            if (!tradeConnector.GetValue<bool>("Trading"))
+            {
+                WriteText($"Connector: '{tradeConnector.CustomName}' Not in Trade mode.");
+                return false;
+            }
 
-                //WriteText($"Connector: '{tradeConnector.CustomName}'");
+            //WriteText($"Connector: '{tradeConnector.CustomName}'");
             return true; ;
 
         }
