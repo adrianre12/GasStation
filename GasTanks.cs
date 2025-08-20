@@ -131,6 +131,11 @@ namespace Catopia.GasStation
             double amount = AmountRequest;
             int ammountPerTank = AmountRequest/tankSpread;
             int remainder = AmountRequest % tankSpread;
+            tanks.Sort(
+                delegate (GasTank p1, GasTank p2)
+                {
+                    return p1.tank.FilledRatio.CompareTo(p2.tank.FilledRatio);
+                });
             foreach (var tank in tanks)
             {
                 amount -= tank.Fill(ammountPerTank + remainder);
@@ -150,11 +155,14 @@ namespace Catopia.GasStation
             double amount = AmountRequest;
             int ammountPerTank = AmountRequest / tankSpread;
             int remainder = AmountRequest % tankSpread;
-            Log.Msg($"Drain AmountRequest={AmountRequest} ammountPerTank={ammountPerTank} remainder={remainder}");
+            tanks.Sort(
+                delegate (GasTank p1, GasTank p2)
+            {
+                return p2.tank.FilledRatio.CompareTo(p1.tank.FilledRatio);
+            });
             foreach (var tank in tanks)
             {
                 amount -= tank.Drain(ammountPerTank + remainder);
-                Log.Msg($"amount={amount}");
                 remainder = 0;
                 if (amount <= 0)
                     break;

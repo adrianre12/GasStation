@@ -117,7 +117,7 @@ namespace Catopia.GasStation
 
         private void Block_IsWorkingChanged(IMyCubeBlock obj)
         {
-            Log.Msg($"IsWorkingChanged IsWorking = {block.IsWorking}");
+            //Log.Msg($"IsWorkingChanged IsWorking = {block.IsWorking}");
             if (!block.IsWorking)
                 Reset();
         }
