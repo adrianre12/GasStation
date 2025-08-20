@@ -205,18 +205,20 @@ namespace Catopia.GasStation
                 return;
             }
 
-
+            var cashSC = (int)cashInventory.GetItemAmount(id);
+            var freeSpaceKL = (int)gasPump.TargetH2Tanks.TotalFree / 1000;
+            var maxFillKL = (int)Math.Min(freeSpaceKL, cashSC / gasPump.PricePerKL);
             switch (dockedState)
             {
                 case DockedState.Docked:
                     {
-                        ScreenDocked();
-                        enableTransferButton = true;
+                        ScreenDocked(cashSC,freeSpaceKL,maxFillKL);
+                        enableTransferButton = maxFillKL > 0;
                         break;
                     }
                 case DockedState.UnDocked:
                     {
-                        ScreenUndocked();
+                        ScreenUndocked(cashSC);
                         break;
                     }
             }
@@ -226,6 +228,18 @@ namespace Catopia.GasStation
                 if (enableTransfer)
                 {
                     SetEmissives(GREEN);
+                    switch (gasPump.BatchTransfer(cashSC))
+                    {
+                        case GasPump.TransferResult.Continue:
+                            {
+                                break;
+                            }
+                        default:
+                            {
+                                enableTransfer = false;
+                                break;
+                            }
+                    }
                 }
                 else
                 {
@@ -234,10 +248,10 @@ namespace Catopia.GasStation
             }
             else
             {
-                { SetEmissives(RED); }
+                enableTransfer = false;
+                SetEmissives(RED);
             }
 
-            //remove cash out of gasPump, call transfer with total transfer request, caluclate and remove cash from ammount transfered.
 
             // think abut sleep mode.
 
@@ -269,38 +283,34 @@ namespace Catopia.GasStation
             block.WriteText(screenSB.ToString());
         }
 
-        internal void ScreenDocked()
+        internal void ScreenDocked(int cashSC, int freeSpaceKL, int maxFillKL)
         {
-            var cashSC = (int)cashInventory.GetItemAmount(id);
-            var freeSpaceKL = (int)gasPump.TargetH2Tanks.TotalFree / 1000;
-            var maxFillKL = (int)Math.Min(freeSpaceKL, cashSC / gasPump.PricePerKL);
-
             screenSB.Clear();
             //               "12345678901234567890123456789012345678901"
             screenSB.Append($"Station: '{block.CubeGrid.DisplayName}'\n");
             screenSB.Append($"H2 Available: {(int)gasPump.SourceH2Tanks.TotalAvailable / 1000}KL\n");
-            screenSB.Append($"Price SC/KL: {gasPump.PricePerKL} \n");
-            screenSB.Append($"SC Inserted: {cashSC}\n");
+            screenSB.Append($"Price SC/KL: SC {gasPump.PricePerKL} \n");
+            screenSB.Append($"SC Inserted: SC {cashSC}\n");
             screenSB.Append($"\n");
             screenSB.Append($"Ship: '{dockedShipName}'\n");
             screenSB.Append($"Free Space: {freeSpaceKL}KL in {gasPump.TargetTanksCount} tanks\n");
-            screenSB.Append($"Total Price: {freeSpaceKL * gasPump.PricePerKL}\n");            
-            screenSB.Append($"Max Fill KL {maxFillKL}\n");
-            screenSB.Append($"Total Price: {(int)maxFillKL * gasPump.PricePerKL}\n");
+            screenSB.Append($"Max Price: SC {freeSpaceKL * gasPump.PricePerKL}\n");            
+            screenSB.Append($"Max Fill: {maxFillKL}KL\n");
+            screenSB.Append($"Total Price: SC {(int)maxFillKL * gasPump.PricePerKL}\n");
             screenSB.Append($"\n");
-            screenSB.Append($"Press button to start/stop {enableTransfer}");
+            string tmp = enableTransfer ? "Stop" : "Start";
+            screenSB.Append($"Press button to {tmp}");
 
             block.WriteText(screenSB.ToString());
         }
-        internal void ScreenUndocked()
+        internal void ScreenUndocked(int cashSC)
         {
-            var cashSC = (int)cashInventory.GetItemAmount(id);
             screenSB.Clear();
             //               "12345678901234567890123456789012345678901"
             screenSB.Append($"Station: '{block.CubeGrid.DisplayName}'\n");
             screenSB.Append($"H2 Available: {(int)gasPump.SourceH2Tanks.TotalAvailable/1000}KL\n");
-            screenSB.Append($"Price SC/KL: {gasPump.PricePerKL} \n");
-            screenSB.Append($"SC Inserted: {cashSC}\n");
+            screenSB.Append($"Price SC/KL: SC {gasPump.PricePerKL} \n");
+            screenSB.Append($"SC Inserted: SC {cashSC}\n");
             screenSB.Append($"\n");
             screenSB.Append($"Dock ship and insert SC to continue .\n");
             screenSB.Append($"\n");
