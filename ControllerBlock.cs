@@ -4,6 +4,7 @@ using Sandbox.ModAPI;
 using Sandbox.ModAPI.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using System.Text;
 using VRage;
 using VRage.Game;
@@ -24,6 +25,7 @@ namespace Catopia.GasStation
         private MyDefinitionId id = new MyDefinitionId(typeof(MyObjectBuilder_PhysicalObject), "SpaceCredit");
         private GasPump gasPump;
         private bool enableTransfer;
+        private bool enableTransferButton;
         private IMyShipConnector tradeConnector;
         private MyInventory cashInventory;
         private IMyCubeGrid stationCubeGrid;
@@ -32,6 +34,14 @@ namespace Catopia.GasStation
         private List<string> screenText = new List<string>();
         private int booting = 2;
         private StringBuilder screenSB = new StringBuilder();
+
+        private const string EMISSIVE_MATERIAL_NAME = "Emissive1";
+        private Color BLACK = new Color(0, 0, 0);
+        private Color RED = new Color(255, 0, 0);
+        private Color GREY = new Color(128, 128, 128);
+        private Color MUSTARD = new Color(255, 255, 0);
+        private Color GREEN = new Color(10, 255, 0);
+        private Color CYAN = new Color(0, 255, 255);
 
         private enum DockedState
         {
@@ -76,10 +86,16 @@ namespace Catopia.GasStation
             block.Font = "Debug";
             block.FontSize = 0.85f;
 
+            SetEmissives(RED);
+
             NeedsUpdate |= MyEntityUpdateEnum.EACH_100TH_FRAME;
             block.EnabledChanged += Block_EnabledChanged;
 
             block.CubeGrid.OnBlockRemoved += CubeGrid_OnBlockRemoved;
+        }
+
+        private void SetEmissives(Color colour){
+            block.SetEmissiveParts(EMISSIVE_MATERIAL_NAME, colour, 1f);
         }
 
         private void CubeGrid_OnBlockRemoved(IMySlimBlock obj)
@@ -107,7 +123,9 @@ namespace Catopia.GasStation
 
         public override void UpdateAfterSimulation100()
         {
-           // Log.Msg($"Tick {block.CubeGrid.DisplayName} enabled={block.Enabled}");
+            enableTransferButton = false;
+
+            // Log.Msg($"Tick {block.CubeGrid.DisplayName} enabled={block.Enabled}");
             CheckSCVisability();
             if (!block.Enabled)
                 return;
@@ -193,6 +211,7 @@ namespace Catopia.GasStation
                 case DockedState.Docked:
                     {
                         ScreenDocked();
+                        enableTransferButton = true;
                         break;
                     }
                 case DockedState.UnDocked:
@@ -200,7 +219,22 @@ namespace Catopia.GasStation
                         ScreenUndocked();
                         break;
                     }
+            }
 
+            if (enableTransferButton)
+            {
+                if (enableTransfer)
+                {
+                    SetEmissives(GREEN);
+                }
+                else
+                {
+                    SetEmissives(MUSTARD);
+                }
+            }
+            else
+            {
+                { SetEmissives(RED); }
             }
 
             //remove cash out of gasPump, call transfer with total transfer request, caluclate and remove cash from ammount transfered.
@@ -218,6 +252,7 @@ namespace Catopia.GasStation
             tradeConnector = null;
             gasPump = new GasPump(stationCubeGrid, cashInventory);
             enableTransfer = false;
+            enableTransferButton = false;
             dockedState = DockedState.Unknown;
             booting = 2;
             screenText.Clear();
@@ -318,7 +353,7 @@ namespace Catopia.GasStation
 
         internal void ToggleTransfer()
         {      
-            enableTransfer = !enableTransfer;
+            enableTransfer = enableTransferButton &&!enableTransfer;
         }
 
         private void FindTradeConnector()
