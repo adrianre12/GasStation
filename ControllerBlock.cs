@@ -78,16 +78,10 @@ namespace Catopia.GasStation
 
         public override void Init(MyObjectBuilder_EntityBase objectBuilder)
         {
-            if (!MyAPIGateway.Session.IsServer)
-                return;
-
             block = Entity as IMyTextPanel;
-
-            if (block.Storage == null)
-                block.Storage = new MyModStorageComponent();
-
-            NeedsUpdate = MyEntityUpdateEnum.BEFORE_NEXT_FRAME;
             Log.DebugLog = true;
+
+           NeedsUpdate = MyEntityUpdateEnum.BEFORE_NEXT_FRAME;
         }
 
         public override void UpdateOnceBeforeFrame()
@@ -96,12 +90,20 @@ namespace Catopia.GasStation
             if (block.CubeGrid?.Physics == null)
                 return;
 
-            stationCubeGrid = block.CubeGrid;
             cashSourceInventory = block.GetInventory() as MyInventory;
+            if (!MyAPIGateway.Utilities.IsDedicated) //client only
+            {xxx check this
+                cashSourceInventory.ContentsChanged += CashSourceInventory_ContentsChanged;
+                CashSourceInventory_ContentsChanged(cashSourceInventory);
+            }
+            //CheckSCVisability();
+
+
+            if (!MyAPIGateway.Session.IsServer)
+                return;
+
+            stationCubeGrid = block.CubeGrid;
             gasPump = new GasPump(stationCubeGrid);
-
-
-            CheckSCVisability();
 
             block.ContentType = VRage.Game.GUI.TextPanel.ContentType.TEXT_AND_IMAGE;
             block.WriteText(".");
@@ -120,12 +122,6 @@ namespace Catopia.GasStation
             block.IsWorkingChanged += Block_IsWorkingChanged;
             block.CubeGrid.OnBlockRemoved += CubeGrid_OnBlockRemoved;
         }
-
-        private void SetEmissives(Color colour)
-        {
-            block.SetEmissiveParts(BUTTON_EMISSIVE_NAME, colour, 1f);
-        }
-
         private void CubeGrid_OnBlockRemoved(IMySlimBlock obj)
         {
             //WriteText("Checking Removed Blocks");
@@ -160,7 +156,7 @@ namespace Catopia.GasStation
             enableTransferButton = false;
 
             //Log.Msg($"Tick {block.CubeGrid.DisplayName} IsWorking={block.IsWorking}");
-            CheckSCVisability();
+            //CheckSCVisability();
             if (!block.IsWorking)
                 return;
 
@@ -452,8 +448,59 @@ namespace Catopia.GasStation
                     block.WriteText(screenSB.ToString());
                 }*/
 
-        private void CheckSCVisability()
+        private IMyShipConnector FindTradeConnector()
         {
+            foreach (var connector in stationCubeGrid.GetFatBlocks<IMyShipConnector>())
+            {
+                if (!connector.CustomName.Contains(Settings.GasPumpIdentifier))
+                    continue;
+                WriteText($"Connector: '{connector.CustomName}'");
+
+                return connector;
+            }
+
+            WriteText($"No Gas Pump Connector found with\nidentifier: {Settings.GasPumpIdentifier}");
+            return null;
+        }
+
+        private bool CheckTradeConnector()
+        {
+            if (!tradeConnector.IsWorking)
+            {
+                WriteText($"Connector: '{tradeConnector.CustomName}' Not Enabled.");
+                return false;
+            }
+
+            if (!tradeConnector.GetValue<bool>("Trading"))
+            {
+                WriteText($"Connector: '{tradeConnector.CustomName}' Not in Trade mode.");
+                return false;
+            }
+
+            return true; ;
+        }
+
+// On client
+
+        private void CashSourceInventory_ContentsChanged(MyInventoryBase cashInventory)
+        {
+            var scAmount = (float)cashInventory.GetItemAmount(SCDefId);
+            try
+            {
+                MyEntitySubpart subpart;
+                if (Entity.TryGetSubpart("SpaceCredit", out subpart)) // subpart does not exist when block is in build stage
+                {
+                    subpart.Render.Visible = scAmount > 0.001;
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Msg(e.ToString());
+            }
+        }
+
+        private void CheckSCVisabilityx()
+        { 
             var scAmount = (float)cashSourceInventory.GetItemAmount(SCDefId);
             try
             {
@@ -493,36 +540,11 @@ namespace Catopia.GasStation
             SetEmissives(MUSTARD);
         }
 
-        private IMyShipConnector FindTradeConnector()
+        private void SetEmissives(Color colour)
         {
-            foreach (var connector in stationCubeGrid.GetFatBlocks<IMyShipConnector>())
-            {
-                if (!connector.CustomName.Contains(Settings.GasPumpIdentifier))
-                    continue;
-                WriteText($"Connector: '{connector.CustomName}'");
-
-                return connector;
-            }
-
-            WriteText($"No Gas Pump Connector found with\nidentifier: {Settings.GasPumpIdentifier}");
-            return null;
+            block.SetEmissiveParts(BUTTON_EMISSIVE_NAME, colour, 1f);
         }
 
-        private bool CheckTradeConnector()
-        {
-            if (!tradeConnector.IsWorking)
-            {
-                WriteText($"Connector: '{tradeConnector.CustomName}' Not Enabled.");
-                return false;
-            }
 
-            if (!tradeConnector.GetValue<bool>("Trading"))
-            {
-                WriteText($"Connector: '{tradeConnector.CustomName}' Not in Trade mode.");
-                return false;
-            }
-
-            return true; ;
-        }
     }
 }
