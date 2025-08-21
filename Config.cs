@@ -1,0 +1,91 @@
+﻿using ProtoBuf;
+using Sandbox.Engine.Utils;
+using Sandbox.Game;
+using Sandbox.Game.EntityComponents;
+using Sandbox.ModAPI;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using VRage.Game;
+using VRage.Game.ModAPI;
+using VRage.Game.ModAPI.Ingame.Utilities;
+using VRage.ModAPI;
+using static Catopia.GasStation.ControllerBlock;
+
+namespace Catopia.GasStation
+{
+    internal class Config
+    {
+        private MyIni myIni = new MyIni();
+
+        private const string KeyPricePerKL = "PricePerKL";
+        public const int DefaultPricePerKL = 2507;
+        public int PricePerKL = DefaultPricePerKL;
+
+        private const string KeyGasPumpIdentifier = "Identifier";
+        public const string DefaultGasPumpIdentifier = "[GS1]";
+        public string GasPumpIdentifier = DefaultGasPumpIdentifier;
+
+        private const string KeyCreditMethod = "CreditMethod";
+        public const CreditMethodEnum DefaultCreditMethod = CreditMethodEnum.TradeConnector;
+        public CreditMethodEnum CreditMethod = DefaultCreditMethod;
+
+
+        internal void LoadConfigFromCD(IMyTerminalBlock block)
+        {
+            if (!ParseConfigFromCD(block))
+            {
+                Log.Msg("Error in CD, creating a new config.");
+
+                SaveConfigToCD(block);
+            }
+        }
+
+        internal void SaveConfigToCD(IMyTerminalBlock block)
+        {
+            Log.Msg("Saving config to CD.");
+
+            myIni.Clear();
+            var sb = new StringBuilder();
+            sb.AppendLine("GasStation Settings");
+
+            myIni.AddSection("Settings");
+            myIni.SetSectionComment("Settings", sb.ToString());
+
+            myIni.Set("Settings", KeyGasPumpIdentifier, GasPumpIdentifier);
+            myIni.Set("Settings", KeyPricePerKL, PricePerKL);
+            myIni.Set("Settings", KeyCreditMethod, CreditMethod.ToString());
+
+            myIni.Invalidate();
+            block.CustomData = myIni.ToString();
+        }
+
+        private bool ParseConfigFromCD(IMyTerminalBlock block)
+        {
+            //Log.Msg("ParseConfigFromCD");
+            if (myIni.TryParse(block.CustomData))
+            {
+                if (!myIni.ContainsSection("Settings"))
+                    return false;
+
+                if (!myIni.Get("Settings", KeyGasPumpIdentifier).TryGetString(out GasPumpIdentifier))
+                    return false;
+
+                if (!myIni.Get("Settings", KeyPricePerKL).TryGetInt32(out PricePerKL))
+                    return false;
+
+                string tmp;
+                if (!myIni.Get("Settings", KeyCreditMethod).TryGetString(out tmp))
+                    return false;
+                if (!Enum.TryParse<CreditMethodEnum>(tmp, out CreditMethod))
+                    return false;
+
+                return true;
+            }
+            Log.Msg("Error: Failed to load config");
+            return false;
+        }
+    }
+}

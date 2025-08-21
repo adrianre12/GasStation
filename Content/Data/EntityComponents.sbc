@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <EntityComponents>
+		<EntityComponent xsi:type="MyObjectBuilder_InventoryComponentDefinition">
+			<Id>
+				<TypeId>Inventory</TypeId>
+				<SubtypeId>GasStation</SubtypeId>
+			</Id>
+			<Size x="1" y="1" z="1" />
+			<InputConstraint Whitelist="true" Description="SpaceCredits" Icon="Textures\GUI\Icons\buttons\Other.dds">
+				<Entry Type="PhysicalObject" Subtype="SpaceCredit" />
+			</InputConstraint>
+		</EntityComponent>
+    </EntityComponents>
+</Definitions>

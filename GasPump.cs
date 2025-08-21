@@ -23,10 +23,6 @@ namespace Catopia.GasStation
         private GasTanks sourceH2Tanks = new GasTanks();
         internal GasTanks SourceH2Tanks {  get { return sourceH2Tanks; } }
 
-        internal int PricePerKL = 1;
-        internal string GasPumpIdentifier = "[GS1]";
-
-        private static MyDefinitionId SCDefId = MyDefinitionId.Parse("MyObjectBuilder_PhysicalObject/SpaceCredit");
         private static MyDefinitionId H2DefId = MyDefinitionId.Parse("MyObjectBuilder_GasProperties/Hydrogen");
 
         internal int SorurceTanksCount { get { return sourceH2Tanks.Count;  } }
@@ -37,7 +33,6 @@ namespace Catopia.GasStation
                 return (int)Math.Min(MaxMultiplier, (int)Math.Min(SorurceTanksCount, TargetTanksCount));
             } }
 
-        private MyInventory cashInventory;
         private IMyCubeGrid stationCubeGrid;
 
         public enum TransferResult
@@ -49,9 +44,8 @@ namespace Catopia.GasStation
             Error
         }
 
-        public GasPump( IMyCubeGrid cubeGrid, MyInventory inventory)
+        public GasPump( IMyCubeGrid cubeGrid)
         {
-            cashInventory = inventory;
             stationCubeGrid = cubeGrid;
         }
 
@@ -70,74 +64,43 @@ namespace Catopia.GasStation
             return  targetH2Tanks.TanksMarkedForClose();
         }
 
-        public TransferResult BatchTransfer(int cashSC)
+        public TransferResult BatchTransfer(int maxFillKL, out int transferedKL)
         {
-            if (cashSC == 0)
-            {
-                return TransferResult.NotEnoughCash;
-            }
+            int transferRequestKL = Math.Min(maxFillKL, KLPerTick * TransferMultiplier);
 
-            Log.Msg($"Found SC={cashSC}");
+            transferedKL = 0;
+            TransferResult transferResult = TransferGas(transferRequestKL, out transferedKL);
+            Log.Msg($"TransferGas transferResult={transferResult.ToString()} transferedKL={transferedKL}");
 
-            TransferResult transferResult = StartGasTransfer(cashSC);
             switch (transferResult)
             {
-                case TransferResult.Continue:
+/*                case TransferResult.Continue:
                     {
                         break;
                     }
                 case TransferResult.FullTarget:
                     {
-                        //enableTransfer = false;
-                        Log.Debug("Target Full");
+                        //Log.Debug("Target Full");
                         break;
                     }
                 case TransferResult.EmptySource:
                     {
-                        //enableTransfer = false;
-                        Log.Debug("Source Empty");
+                        //Log.Debug("Source Empty");
                         break;
                     }
                 case TransferResult.NotEnoughCash:
                     {
-                        //enableTransfer = false;
-                        Log.Msg("Not Enough Cash");
+                        //.Msg("Not Enough Cash");
                         break;
-                    }
+                    }*/
                 case TransferResult.Error:
                     {
-                        //enableTransfer = false;
                         Log.Msg("Error transfer stopped");
                         break;
                     }
+                default:
+                    break;
             }
-            return transferResult;
-        }
-
-        private TransferResult StartGasTransfer(int cashSC)
-        {
-            int canAffordKL = cashSC / PricePerKL;
-
-            if (canAffordKL == 0)
-                return TransferResult.NotEnoughCash;
-
-            int transferRequestKL = Math.Min(canAffordKL, KLPerTick * TransferMultiplier);
-            Log.Msg($"Cash={cashSC} canAffordKL{canAffordKL} transferRequestKL={transferRequestKL}");
-
-            Log.Msg("transfer gas");
-
-            int transferedKL = 0;
-            TransferResult transferResult = TransferGas(transferRequestKL, out transferedKL);
-            Log.Msg($"TransferGas transferResult={transferResult.ToString()}");
-
-            int removeCash = transferedKL * PricePerKL;
-
-            if (!TryRemoveCash(removeCash))
-            {
-                Log.Msg($"Failed to remove SC = {removeCash}");
-                return TransferResult.Error;
-            }
-
             return transferResult;
         }
 
@@ -174,23 +137,6 @@ namespace Catopia.GasStation
             return TransferResult.Continue;
         }
 
-        private bool TryRemoveCash(int amount)
-        {
-            if (amount == 0)
-                return true;
-
-            if (cashInventory.ItemCount == 0)
-                return false;
-            return cashInventory.RemoveItemsOfType(amount, SCDefId).ToIntSafe() == amount;
-        }
-
-        private int FindCashAmount()
-        {
-            if (cashInventory.ItemCount == 0)
-                return 0;
-            return cashInventory.GetItemAmount(SCDefId).ToIntSafe();
-        }
-
         internal bool TryFindTargetTanks(IMyShipConnector tradeConnector, out string shipName)
         {
             shipName = null; ;
@@ -202,14 +148,14 @@ namespace Catopia.GasStation
             MyCubeGrid connectedGrid = (MyCubeGrid)(targetConector?.CubeGrid);
             if (!tradeConnector.IsConnected || connectedGrid == null)
             {
-                Log.Msg("Trade connector is not connected.");
+                //Log.Msg("Trade connector is not connected.");
                 return false;
             }
 
             List<MyCubeGrid> groupNodes = connectedGrid.GetConnectedGrids(GridLinkTypeEnum.Mechanical);
             if (groupNodes == null || groupNodes.Count == 0)
             {
-                Log.Msg("groupNodes is null or empty");
+                //Log.Msg("groupNodes is null or empty");
                 return false;
             }
 
@@ -235,7 +181,7 @@ namespace Catopia.GasStation
             return targetH2Tanks.Count > 0;
         }
 
-        internal bool TryFindSourceTanks(IMyShipConnector tradeConnector)
+        internal bool TryFindSourceTanks(IMyShipConnector tradeConnector, string gasPumpIdentifier)
         {
             sourceH2Tanks.Clear();
             if (stationCubeGrid == null)
@@ -245,15 +191,15 @@ namespace Catopia.GasStation
             {
                 if (!tradeConnector.GetInventory().IsConnectedTo(gasTank.GetInventory()))
                     continue;
-                Log.Msg($">>> grid displayNameText={gasTank.DisplayNameText} customName={gasTank.CustomName}");
-                if (gasTank.CustomName.Contains(GasPumpIdentifier) && gasTank.IsWorking && !gasTank.Stockpile)
+                //Log.Msg($">>> grid displayNameText={gasTank.DisplayNameText} customName={gasTank.CustomName}");
+                if (gasTank.CustomName.Contains(gasPumpIdentifier) && gasTank.IsWorking && !gasTank.Stockpile)
                 {
                     var sb = gasTank.SlimBlock.BlockDefinition as MyGasTankDefinition;
                     if (sb.StoredGasId == H2DefId)
                         sourceH2Tanks.Add(gasTank);
                 }
             }
-            Log.Msg($"sourceTanks found = {sourceH2Tanks.Count}");
+            //Log.Msg($"sourceTanks found = {sourceH2Tanks.Count}");
             return sourceH2Tanks.Count > 0;
         }
 

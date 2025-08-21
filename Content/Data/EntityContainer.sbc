@@ -8,7 +8,7 @@
                 <SubtypeId>GasStationController</SubtypeId>
             </Id>
             <DefaultComponents>
-				<Component BuilderType="MyObjectBuilder_Inventory" SubtypeId="Freight1" ForceCreate="true"/>
+				<Component BuilderType="MyObjectBuilder_Inventory" SubtypeId="GasStation" ForceCreate="true"/>
 				<Component BuilderType="MyObjectBuilder_LcdSurfaceComponent" ForceCreate="true"/>
 			</DefaultComponents>
         </Container>
