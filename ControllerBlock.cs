@@ -161,19 +161,12 @@ namespace Catopia.GasStation
             if (!block.IsWorking)
                 Reset();
         }
- /*       private void Block_EnabledChanged(IMyTerminalBlock obj)
-        {
-            //Log.Msg($"EnabledChanged Enabled = {block.Enabled}");
-            if (!block.Enabled)
-                Reset();
-        }*/
 
         public override void UpdateAfterSimulation100()
         {
             enableTransferButton.Value = false;
 
             //Log.Msg($"Tick {block.CubeGrid.DisplayName} IsWorking={block.IsWorking}");
-            //CheckSCVisability();
             if (!block.IsWorking)
                 return;
 
@@ -308,7 +301,6 @@ namespace Catopia.GasStation
                 }
             }
 
-            //UpdateEmissives();
             // think abut sleep mode.
         }
 
@@ -523,19 +515,16 @@ namespace Catopia.GasStation
 
         private void EnableTransferButton_ValueChanged(MySync<bool, SyncDirection.FromServer> obj)
         {
-            //Log.Msg($"EnableTransferButton_ValueChanged enableTransferButton={enableTransferButton.Value} enableTransfer ={enableTransfer.Value} ");
             UpdateEmissives();
         }
 
         private void EnableTransfer_ValueChanged(MySync<bool, SyncDirection.BothWays> obj)
         {
-            //Log.Msg($"EnableTransfer_ValueChanged enableTransferButton={enableTransferButton.Value} enableTransfer ={enableTransfer.Value} ");
             UpdateEmissives();
         }
 
         internal void UpdateEmissives()
         {
-            //Log.Msg($"UpdateEmissives enableTransferButton={enableTransferButton.Value} enableTransfer ={enableTransfer.Value} ");
             if (!block.IsWorking)
             {
                 SetEmissives(BLACK);
@@ -543,7 +532,6 @@ namespace Catopia.GasStation
             }
             if (!enableTransferButton)
             {
-                //enableTransfer.Value = false;
                 SetEmissives(RED);
                 return;
             }
@@ -561,7 +549,6 @@ namespace Catopia.GasStation
         {
             block.SetEmissiveParts(BUTTON_EMISSIVE_NAME, colour, 1f);
         }
-
 
     }
 }
