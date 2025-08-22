@@ -15,9 +15,11 @@ using VRage.Game;
 using VRage.Game.Components;
 using VRage.Game.Entity;
 using VRage.Game.ModAPI;
+using VRage.Game.ModAPI.Network;
 using VRage.ModAPI;
 using VRage.ObjectBuilders;
 using VRage.ObjectBuilders.Private;
+using VRage.Sync;
 using VRageMath;
 
 namespace Catopia.GasStation
@@ -30,8 +32,8 @@ namespace Catopia.GasStation
 
         private IMyTextPanel block;
         private GasPump gasPump;
-        private bool enableTransfer;
-        private bool enableTransferButton;
+        private MySync<bool, SyncDirection.BothWays> enableTransfer;
+        private MySync<bool, SyncDirection.FromServer> enableTransferButton;
         private IMyShipConnector tradeConnector;
         private MyInventory tradeConnectorInventory;
         private MyInventory cashSourceInventory;
@@ -81,7 +83,7 @@ namespace Catopia.GasStation
             block = Entity as IMyTextPanel;
             Log.DebugLog = true;
 
-           NeedsUpdate = MyEntityUpdateEnum.BEFORE_NEXT_FRAME;
+            NeedsUpdate = MyEntityUpdateEnum.BEFORE_NEXT_FRAME;
         }
 
         public override void UpdateOnceBeforeFrame()
@@ -92,9 +94,12 @@ namespace Catopia.GasStation
 
             cashSourceInventory = block.GetInventory() as MyInventory;
             if (!MyAPIGateway.Utilities.IsDedicated) //client only
-            {xxx check this
+            {
+                SetEmissives(RED);
                 cashSourceInventory.ContentsChanged += CashSourceInventory_ContentsChanged;
                 CashSourceInventory_ContentsChanged(cashSourceInventory);
+                enableTransfer.ValueChanged += EnableTransfer_ValueChanged;
+                enableTransferButton.ValueChanged += EnableTransferButton_ValueChanged;
             }
             //CheckSCVisability();
 
@@ -110,18 +115,27 @@ namespace Catopia.GasStation
             block.Font = "Debug";
             block.FontSize = 0.85f;
 
-            SetEmissives(RED);
-
             Settings.LoadConfigFromCD(block);
 
             SCobjectBuilder = (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializer.CreateNewObject(SCDefId);
-
 
             NeedsUpdate |= MyEntityUpdateEnum.EACH_100TH_FRAME;
             block.EnabledChanged += Block_EnabledChanged;
             block.IsWorkingChanged += Block_IsWorkingChanged;
             block.CubeGrid.OnBlockRemoved += CubeGrid_OnBlockRemoved;
         }
+
+        public override void Close()
+        {
+            enableTransfer.ValueChanged -= EnableTransfer_ValueChanged;
+            enableTransferButton.ValueChanged -= EnableTransferButton_ValueChanged;
+            block.EnabledChanged -= Block_EnabledChanged;
+            block.IsWorkingChanged -= Block_IsWorkingChanged;
+            block.CubeGrid.OnBlockRemoved -= CubeGrid_OnBlockRemoved;
+
+            base.Close();
+        }
+
         private void CubeGrid_OnBlockRemoved(IMySlimBlock obj)
         {
             //WriteText("Checking Removed Blocks");
@@ -153,7 +167,7 @@ namespace Catopia.GasStation
 
         public override void UpdateAfterSimulation100()
         {
-            enableTransferButton = false;
+            enableTransferButton.Value = false;
 
             //Log.Msg($"Tick {block.CubeGrid.DisplayName} IsWorking={block.IsWorking}");
             //CheckSCVisability();
@@ -169,7 +183,7 @@ namespace Catopia.GasStation
                 return;
             }
 
-                if (gasPump.TargetTanksMarkedForClose()) //cant detect grid change ove trade connector
+            if (gasPump.TargetTanksMarkedForClose()) //cant detect grid change ove trade connector
             {
                 Reset();
                 WriteText("Ship Tank Removed");
@@ -190,14 +204,14 @@ namespace Catopia.GasStation
                 if (tradeConnector != null)
                     tradeConnectorInventory = (MyInventory)tradeConnector.GetInventory();
                 dockedState = DockedStateEnum.Unknown; //force missmatch
-                enableTransfer = false;
+                enableTransfer.Value = false;
                 return;
             }
 
             if (!CheckTradeConnector())
             {
                 dockedState = DockedStateEnum.Unknown;
-                enableTransfer = false;
+                enableTransfer.Value = false;
                 return;
             }
 
@@ -206,7 +220,7 @@ namespace Catopia.GasStation
                 if (!gasPump.TryFindSourceTanks(tradeConnector, Settings.GasPumpIdentifier))
                 {
                     WriteText($"No source tanks found with identifier: {Settings.GasPumpIdentifier}");
-                    enableTransfer = false;
+                    enableTransfer.Value = false;
                     return;
                 }
                 WriteText($"Source Tanks found: {gasPump.SorurceTanksCount}");
@@ -240,7 +254,7 @@ namespace Catopia.GasStation
                             dockedShipName = null;
                             WriteText($"No Ship Docked");
                             gasPump.TargetTanksReset();
-                            enableTransfer = false;
+                            enableTransfer.Value = false;
                             break;
                         }
                 }
@@ -255,7 +269,7 @@ namespace Catopia.GasStation
                 case DockedStateEnum.Docked:
                     {
                         ScreenDocked(cashSC, freeSpaceKL, maxFillKL);
-                        enableTransferButton = maxFillKL > 0;
+                        enableTransferButton.Value = maxFillKL > 0;
                         break;
                     }
                 case DockedStateEnum.UnDocked:
@@ -266,7 +280,7 @@ namespace Catopia.GasStation
             }
 
             if (!enableTransferButton)
-                enableTransfer = false;
+                enableTransfer.Value = false;
 
             if (enableTransfer)
             {
@@ -279,7 +293,7 @@ namespace Catopia.GasStation
                         }
                     default:
                         {
-                            enableTransfer = false;
+                            enableTransfer.Value = false;
                             break;
                         }
                 }
@@ -287,11 +301,11 @@ namespace Catopia.GasStation
                 if (!TryTransferCash(transferedKL))
                 {
                     Log.Msg("Cash transfer failed");
-                    enableTransfer = false;
+                    enableTransfer.Value = false;
                 }
             }
 
-            UpdateEmissives();
+            //UpdateEmissives();
             // think abut sleep mode.
         }
 
@@ -314,14 +328,14 @@ namespace Catopia.GasStation
                 default:
                     {
                         Log.Msg("CreditMethod Not implemented");
-                        enableTransfer = false;
+                        enableTransfer.Value = false;
                         return false;
                     }
                 case CreditMethodEnum.TradeConnector:
                     {
                         if (!TryCreditTradeConnector(amount))
                         {
-                            enableTransfer = false;
+                            enableTransfer.Value = false;
                             Log.Msg("TryCreditTradeConnector failed");
                             return false;
                         }
@@ -331,7 +345,7 @@ namespace Catopia.GasStation
                     {
                         if (!TryCreditOwner(amount))
                         {
-                            enableTransfer = false;
+                            enableTransfer.Value = false;
                             Log.Msg("TryCreditOwner failed");
                             return false;
                         }
@@ -363,8 +377,8 @@ namespace Catopia.GasStation
             tradeConnector = null;
             tradeConnectorInventory = null;
             gasPump = new GasPump(stationCubeGrid);
-            enableTransfer = false;
-            enableTransferButton = false;
+            enableTransfer.Value = false;
+            enableTransferButton.Value = false;
             dockedState = DockedStateEnum.Unknown;
             bootSteps = DEFAULT_BOOT_STEPS;
             screenText.Clear();
@@ -480,7 +494,7 @@ namespace Catopia.GasStation
             return true; ;
         }
 
-// On client
+        // On client
 
         private void CashSourceInventory_ContentsChanged(MyInventoryBase cashInventory)
         {
@@ -499,34 +513,46 @@ namespace Catopia.GasStation
             }
         }
 
-        private void CheckSCVisabilityx()
-        { 
-            var scAmount = (float)cashSourceInventory.GetItemAmount(SCDefId);
-            try
-            {
-                MyEntitySubpart subpart;
-                if (Entity.TryGetSubpart("SpaceCredit", out subpart)) // subpart does not exist when block is in build stage
-                {
-                    subpart.Render.Visible = scAmount > 0.001;
-                }
-            }
-            catch (Exception e)
-            {
-                Log.Msg(e.ToString());
-            }
-        }
+        /*        private void CheckSCVisabilityx()
+                { 
+                    var scAmount = (float)cashSourceInventory.GetItemAmount(SCDefId);
+                    try
+                    {
+                        MyEntitySubpart subpart;
+                        if (Entity.TryGetSubpart("SpaceCredit", out subpart)) // subpart does not exist when block is in build stage
+                        {
+                            subpart.Render.Visible = scAmount > 0.001;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Msg(e.ToString());
+                    }
+                }*/
 
         internal void ToggleTransfer()
         {
-            enableTransfer = enableTransferButton && !enableTransfer;
+            enableTransfer.Value = enableTransferButton.Value && !enableTransfer.Value;
+        }
+
+        private void EnableTransferButton_ValueChanged(MySync<bool, SyncDirection.FromServer> obj)
+        {
+            //Log.Msg($"EnableTransferButton_ValueChanged enableTransferButton={enableTransferButton.Value} enableTransfer ={enableTransfer.Value} ");
+            UpdateEmissives();
+        }
+
+        private void EnableTransfer_ValueChanged(MySync<bool, SyncDirection.BothWays> obj)
+        {
+            //Log.Msg($"EnableTransfer_ValueChanged enableTransferButton={enableTransferButton.Value} enableTransfer ={enableTransfer.Value} ");
             UpdateEmissives();
         }
 
         internal void UpdateEmissives()
         {
+            //Log.Msg($"UpdateEmissives enableTransferButton={enableTransferButton.Value} enableTransfer ={enableTransfer.Value} ");
             if (!enableTransferButton)
             {
-                enableTransfer = false;
+                enableTransfer.Value = false;
                 SetEmissives(RED);
                 return;
             }
