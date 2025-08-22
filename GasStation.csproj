@@ -31,6 +31,6 @@
     <None Remove="thumb.png" />
   </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="DS-Deploy.cmd" />
+    <Exec Command="TorchDeploy.cmd" />
   </Target>
 </Project>
