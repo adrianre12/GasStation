@@ -101,8 +101,8 @@ namespace Catopia.GasStation
                 enableTransfer.ValueChanged += EnableTransfer_ValueChanged;
                 enableTransferButton.ValueChanged += EnableTransferButton_ValueChanged;
             }
-            //CheckSCVisability();
 
+            block.IsWorkingChanged += Block_IsWorkingChanged;
 
             if (!MyAPIGateway.Session.IsServer)
                 return;
@@ -120,8 +120,7 @@ namespace Catopia.GasStation
             SCobjectBuilder = (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializer.CreateNewObject(SCDefId);
 
             NeedsUpdate |= MyEntityUpdateEnum.EACH_100TH_FRAME;
-            block.EnabledChanged += Block_EnabledChanged;
-            block.IsWorkingChanged += Block_IsWorkingChanged;
+            //block.EnabledChanged += Block_EnabledChanged;
             block.CubeGrid.OnBlockRemoved += CubeGrid_OnBlockRemoved;
         }
 
@@ -129,7 +128,7 @@ namespace Catopia.GasStation
         {
             enableTransfer.ValueChanged -= EnableTransfer_ValueChanged;
             enableTransferButton.ValueChanged -= EnableTransferButton_ValueChanged;
-            block.EnabledChanged -= Block_EnabledChanged;
+            //block.EnabledChanged -= Block_EnabledChanged;
             block.IsWorkingChanged -= Block_IsWorkingChanged;
             block.CubeGrid.OnBlockRemoved -= CubeGrid_OnBlockRemoved;
 
@@ -154,16 +153,20 @@ namespace Catopia.GasStation
 
         private void Block_IsWorkingChanged(IMyCubeBlock obj)
         {
-            //Log.Msg($"IsWorkingChanged IsWorking = {block.IsWorking}");
+            if (!MyAPIGateway.Utilities.IsDedicated) //client only
+            {
+                UpdateEmissives();
+                return;
+            }
             if (!block.IsWorking)
                 Reset();
         }
-        private void Block_EnabledChanged(IMyTerminalBlock obj)
+ /*       private void Block_EnabledChanged(IMyTerminalBlock obj)
         {
             //Log.Msg($"EnabledChanged Enabled = {block.Enabled}");
             if (!block.Enabled)
                 Reset();
-        }
+        }*/
 
         public override void UpdateAfterSimulation100()
         {
@@ -513,23 +516,6 @@ namespace Catopia.GasStation
             }
         }
 
-        /*        private void CheckSCVisabilityx()
-                { 
-                    var scAmount = (float)cashSourceInventory.GetItemAmount(SCDefId);
-                    try
-                    {
-                        MyEntitySubpart subpart;
-                        if (Entity.TryGetSubpart("SpaceCredit", out subpart)) // subpart does not exist when block is in build stage
-                        {
-                            subpart.Render.Visible = scAmount > 0.001;
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Msg(e.ToString());
-                    }
-                }*/
-
         internal void ToggleTransfer()
         {
             enableTransfer.Value = enableTransferButton.Value && !enableTransfer.Value;
@@ -550,9 +536,14 @@ namespace Catopia.GasStation
         internal void UpdateEmissives()
         {
             //Log.Msg($"UpdateEmissives enableTransferButton={enableTransferButton.Value} enableTransfer ={enableTransfer.Value} ");
+            if (!block.IsWorking)
+            {
+                SetEmissives(BLACK);
+                return;
+            }
             if (!enableTransferButton)
             {
-                enableTransfer.Value = false;
+                //enableTransfer.Value = false;
                 SetEmissives(RED);
                 return;
             }
