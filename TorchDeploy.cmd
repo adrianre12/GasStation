@@ -1,4 +1,5 @@
 @REM exit 0
+exit 0
 set MOD_NAME=GasStation
 set MOD_ID=3553274219
 

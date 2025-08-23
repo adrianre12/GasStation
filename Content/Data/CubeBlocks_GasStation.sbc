@@ -42,7 +42,7 @@
 				<ScreenAreas>
 					<ScreenArea Name="ScreenArea" DisplayName="ScreenArea" TextureResolution="512" ScreenWidth="5" ScreenHeight="3" />
 				</ScreenAreas>
- 			    <EmissiveColorPreset>Default</EmissiveColorPreset>
+				<EmissiveColorPreset>Default</EmissiveColorPreset>
 				<ResourceSinkGroup>Utility</ResourceSinkGroup>
 				<RequiredPowerInput>0.00006</RequiredPowerInput>
 				<DestroyEffect>BlockDestroyedExplosion_Large</DestroyEffect>

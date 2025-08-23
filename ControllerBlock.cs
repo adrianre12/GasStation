@@ -21,6 +21,8 @@ using VRage.ObjectBuilders;
 using VRage.ObjectBuilders.Private;
 using VRage.Sync;
 using VRageMath;
+using System.Linq;
+
 
 namespace Catopia.GasStation
 {
@@ -68,7 +70,7 @@ namespace Catopia.GasStation
         public enum CreditMethodEnum
         {
             TradeConnector,
-            OwnerAccount
+            GridOwner
         }
 
         private DockedStateEnum DockedStateFromBool(bool value)
@@ -102,7 +104,8 @@ namespace Catopia.GasStation
                 enableTransferButton.ValueChanged += EnableTransferButton_ValueChanged;
             }
 
-            block.IsWorkingChanged += Block_IsWorkingChanged;
+            //block.IsWorkingChanged += Block_IsWorkingChanged;
+            //block.EnabledChanged += Block_EnabledChanged;
 
             if (!MyAPIGateway.Session.IsServer)
                 return;
@@ -120,7 +123,6 @@ namespace Catopia.GasStation
             SCobjectBuilder = (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializer.CreateNewObject(SCDefId);
 
             NeedsUpdate |= MyEntityUpdateEnum.EACH_100TH_FRAME;
-            //block.EnabledChanged += Block_EnabledChanged;
             block.CubeGrid.OnBlockRemoved += CubeGrid_OnBlockRemoved;
         }
 
@@ -129,7 +131,7 @@ namespace Catopia.GasStation
             enableTransfer.ValueChanged -= EnableTransfer_ValueChanged;
             enableTransferButton.ValueChanged -= EnableTransferButton_ValueChanged;
             //block.EnabledChanged -= Block_EnabledChanged;
-            block.IsWorkingChanged -= Block_IsWorkingChanged;
+            //block.IsWorkingChanged -= Block_IsWorkingChanged;
             block.CubeGrid.OnBlockRemoved -= CubeGrid_OnBlockRemoved;
 
             base.Close();
@@ -151,8 +153,23 @@ namespace Catopia.GasStation
             }
         }
 
+/*        private void Block_EnabledChanged(IMyTerminalBlock obj)
+        {
+            Log.Msg($"Enable Enabled={block.Enabled} IsWorking={block.IsWorking}");
+
+            if (!MyAPIGateway.Utilities.IsDedicated) //client only
+            {
+                UpdateEmissives();
+                return;
+            }
+            if (!block.Enabled)
+                Reset();
+        }
+
         private void Block_IsWorkingChanged(IMyCubeBlock obj)
         {
+            Log.Msg($"IsWorking Enabled={block.Enabled} IsWorking={block.IsWorking}");
+
             if (!MyAPIGateway.Utilities.IsDedicated) //client only
             {
                 UpdateEmissives();
@@ -160,15 +177,18 @@ namespace Catopia.GasStation
             }
             if (!block.IsWorking)
                 Reset();
-        }
+        }*/
 
         public override void UpdateAfterSimulation100()
         {
             enableTransferButton.Value = false;
 
             //Log.Msg($"Tick {block.CubeGrid.DisplayName} IsWorking={block.IsWorking}");
-            if (!block.IsWorking)
+            if (!block.Enabled || !block.IsFunctional || !block.IsWorking)
+            {
+                Reset();
                 return;
+            }
 
             if (!object.ReferenceEquals(prevCDRef, block.CustomData))
             {
@@ -336,9 +356,9 @@ namespace Catopia.GasStation
                         }
                         break;
                     }
-                case CreditMethodEnum.OwnerAccount:
+                case CreditMethodEnum.GridOwner:
                     {
-                        if (!TryCreditOwner(amount))
+                        if (!TryCreditGridOwner(amount))
                         {
                             enableTransfer.Value = false;
                             Log.Msg("TryCreditOwner failed");
@@ -361,10 +381,20 @@ namespace Catopia.GasStation
             return true;
         }
 
-        private bool TryCreditOwner(int amount)
+        private bool TryCreditGridOwner(int amount)
         {
+            var gridOwner = stationCubeGrid.BigOwners[0];
+            List<IMyPlayer> players = new List<IMyPlayer>();
+            //players.Clear();
+            MyAPIGateway.Multiplayer.Players.GetPlayers(players, (p) => { return p.IdentityId == gridOwner; });
 
-            return false;
+            //IMyPlayer player = players.FirstOrDefault(_player => _player.IdentityId == gridOwner);
+            Log.Msg($"players.Count = {players?.Count}");
+
+            if (players == null || players.Count == 0)
+                return false;
+            players[0].RequestChangeBalance(amount);
+            return true;
         }
 
         private void Reset()
