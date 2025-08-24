@@ -170,8 +170,11 @@ namespace Catopia.GasStation
         internal void ScreenSleep()
         {
             var frame = GetFrame(Color.Black);
-            var position = new Vector2(viewport.Width / 2, viewport.Height / 2 - 20);
+            var position = new Vector2(viewport.Width / 2, viewport.Height / 2 - 45);
 
+            frame.Add(NewTextSprite("Cash Is King", position, Color.Cyan, 1.5f, TextAlignment.CENTER, DefaultFontId));
+
+            position.Y += 2 * LineSpaceing;
             frame.Add(NewTextSprite("Press Button", position, Color.Cyan, 1.5f, TextAlignment.CENTER, DefaultFontId));
 
             frame.Dispose();

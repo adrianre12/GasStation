@@ -27,33 +27,34 @@
 				<MountPoint Side="Bottom" StartX="0.00" StartY="0.00" EndX="1.00" EndY="1.00"/>
 			</MountPoints>
 			<BuildProgressModels>
-				<!--                <Model BuildPercentUpperBound="0.50" File="Models\Cubes\Large\TextPanel_Construction_1.mwm" />
-				<Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\TextPanel_Construction_2.mwm" /> -->
-				</BuildProgressModels>
-				<BlockPairName>GasStationController</BlockPairName>
-				<EdgeType>Light</EdgeType>
-				<BuildTimeSeconds>5</BuildTimeSeconds>
-				<MaxScreenRenderDistance>120</MaxScreenRenderDistance>
-				<DamageEffectName>Damage_Electrical_Damaged</DamageEffectName>
-				<DamagedSound>ParticleElectrical</DamagedSound>
-				<GuiVisible>false</GuiVisible>
-				<ScreenWidth>5</ScreenWidth>
-				<ScreenHeight>3</ScreenHeight>
-				<ScreenAreas>
-					<ScreenArea Name="ScreenArea" DisplayName="ScreenArea" TextureResolution="512" ScreenWidth="5" ScreenHeight="3" />
-				</ScreenAreas>
-				<EmissiveColorPreset>Default</EmissiveColorPreset>
-				<ResourceSinkGroup>Utility</ResourceSinkGroup>
-				<RequiredPowerInput>0.00006</RequiredPowerInput>
-				<DestroyEffect>BlockDestroyedExplosion_Large</DestroyEffect>
-				<DestroyEffectOffset>
-					<X>0</X>
-					<Y>0</Y>
-					<Z>-1.1</Z>
-				</DestroyEffectOffset>
-				<DestroySound>WepSmallWarheadExpl</DestroySound>
-				<PCU>45</PCU>
-				<IsAirTight>false</IsAirTight>
-			</Definition>
-		</CubeBlocks>
-	</Definitions>
+				<Model BuildPercentUpperBound="0.33" File="Models\Cubes\large\GasStationController_BS1.mwm"/>
+				<Model BuildPercentUpperBound="0.67" File="Models\Cubes\large\GasStationController_BS2.mwm"/>
+				<Model BuildPercentUpperBound="1.00" File="Models\Cubes\large\GasStationController_BS3.mwm"/>
+			</BuildProgressModels>
+			<BlockPairName>GasStationController</BlockPairName>
+			<EdgeType>Light</EdgeType>
+			<BuildTimeSeconds>5</BuildTimeSeconds>
+			<MaxScreenRenderDistance>120</MaxScreenRenderDistance>
+			<DamageEffectName>Damage_Electrical_Damaged</DamageEffectName>
+			<DamagedSound>ParticleElectrical</DamagedSound>
+			<GuiVisible>false</GuiVisible>
+			<ScreenWidth>5</ScreenWidth>
+			<ScreenHeight>3</ScreenHeight>
+			<ScreenAreas>
+				<ScreenArea Name="ScreenArea" DisplayName="ScreenArea" TextureResolution="512" ScreenWidth="5" ScreenHeight="3" />
+			</ScreenAreas>
+			<EmissiveColorPreset>Default</EmissiveColorPreset>
+			<ResourceSinkGroup>Utility</ResourceSinkGroup>
+			<RequiredPowerInput>0.00006</RequiredPowerInput>
+			<DestroyEffect>BlockDestroyedExplosion_Large</DestroyEffect>
+			<DestroyEffectOffset>
+				<X>0</X>
+				<Y>0</Y>
+				<Z>-1.1</Z>
+			</DestroyEffectOffset>
+			<DestroySound>WepSmallWarheadExpl</DestroySound>
+			<PCU>45</PCU>
+			<IsAirTight>false</IsAirTight>
+		</Definition>
+	</CubeBlocks>
+</Definitions>

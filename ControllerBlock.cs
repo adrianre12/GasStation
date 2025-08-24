@@ -22,7 +22,7 @@ namespace Catopia.GasStation
     {
         private const string BUTTON_EMISSIVE_NAME = "Emissive1";
         private const int DEFAULT_BOOT_STEPS = 2;
-        private const int DEFAULT_SLEEP_COUNT = 37; //187;
+        private const int DEFAULT_SLEEP_COUNT = 17; //187;
 
         internal IMyTextPanel block;
         internal GasPump gasPump;
@@ -456,7 +456,7 @@ namespace Catopia.GasStation
                 return connector;
             }
 
-            screen0.ScreenText($"No Gas Pump Connector found with\nidentifier: {Settings.GasPumpIdentifier}");
+            screen0.ScreenText($"No Connector found with: {Settings.GasPumpIdentifier}");
             return null;
         }
 
