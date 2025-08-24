@@ -22,11 +22,15 @@ namespace Catopia.GasStation
     {
         private const string BUTTON_EMISSIVE_NAME = "Emissive1";
         private const int DEFAULT_BOOT_STEPS = 2;
+        private const int DEFAULT_SLEEP_COUNT = 37; //187;
 
         internal IMyTextPanel block;
         internal GasPump gasPump;
         internal MySync<bool, SyncDirection.BothWays> enableTransfer;
-        private MySync<bool, SyncDirection.FromServer> enableTransferButton;
+        internal MySync<bool, SyncDirection.FromServer> enableTransferButton;
+        internal MySync<bool, SyncDirection.BothWays> sleepWake;
+        internal bool sleepMode;
+        private int sleepCounter;
         private IMyShipConnector tradeConnector;
         private MyInventory tradeConnectorInventory;
         private MyInventory cashSourceInventory;
@@ -115,9 +119,21 @@ namespace Catopia.GasStation
 
             NeedsUpdate |= MyEntityUpdateEnum.EACH_100TH_FRAME;
             block.CubeGrid.OnBlockRemoved += CubeGrid_OnBlockRemoved;
-
+            block.CubeGrid.OnBlockAdded += CubeGrid_OnBlockAdded;
+            sleepWake.ValueChanged += SleepWake_ValueChanged;
             screen0 = new Screen0();
             screen0.Init((IMyTextSurfaceProvider)block, 0);
+        }
+
+        private void SleepWake_ValueChanged(MySync<bool, SyncDirection.BothWays> obj)
+        {
+            Log.Msg($"Wake {sleepWake.Value}, mode = {sleepMode}");
+            //sleepWake.Value = false;
+            sleepCounter = 0;
+            if (!sleepMode)
+                return;
+            Reset();
+            screen0.ScreenText();
         }
 
         public override void UpdateAfterSimulation100()
@@ -131,6 +147,23 @@ namespace Catopia.GasStation
                 Reset();
                 return;
             }
+            Log.Msg($"SleepMode={sleepMode} Counter={sleepCounter}");
+
+            if (sleepMode)
+            {
+                Log.Msg($"counter={sleepCounter}");
+                if (--sleepCounter > 0)
+                    return;
+                sleepCounter = 5;
+                screen0.ScreenSleep();
+                return;
+            }
+            if (++sleepCounter > DEFAULT_SLEEP_COUNT)
+            {
+                sleepCounter = 0;
+                sleepMode = true;
+            }
+
 
             if (!ReferenceEquals(prevCDRef, block.CustomData)) // detect CD changed.
             {
@@ -242,6 +275,7 @@ namespace Catopia.GasStation
 
             if (enableTransfer)
             {
+                sleepMode = false;
                 int transferedKL;
                 switch (gasPump.BatchTransfer(maxFillKL, out transferedKL))
                 {
@@ -273,13 +307,21 @@ namespace Catopia.GasStation
             //block.EnabledChanged -= Block_EnabledChanged;
             //block.IsWorkingChanged -= Block_IsWorkingChanged;
             block.CubeGrid.OnBlockRemoved -= CubeGrid_OnBlockRemoved;
-
+            block.CubeGrid.OnBlockAdded -= CubeGrid_OnBlockAdded;
             base.Close();
+        }
+
+
+        private void CubeGrid_OnBlockAdded(IMySlimBlock obj)
+        {
+            Log.Msg("BLOCK ADDED");
+            ;
         }
 
         private void CubeGrid_OnBlockRemoved(IMySlimBlock obj)
         {
-            //WriteText("Checking Removed Blocks");
+            Log.Msg("BLOCK REMOVED");
+
             if (tradeConnector != null && tradeConnector.MarkedForClose)
             {
                 Reset();
@@ -399,6 +441,7 @@ namespace Catopia.GasStation
             enableTransferButton.Value = false;
             dockedState = DockedStateEnum.Unknown;
             bootSteps = DEFAULT_BOOT_STEPS;
+            sleepMode = false;
             screen0.ClearText();
         }
 
@@ -455,6 +498,7 @@ namespace Catopia.GasStation
 
         internal void ToggleTransfer()
         {
+            sleepWake.Value = !sleepWake.Value;
             enableTransfer.Value = enableTransferButton.Value && !enableTransfer.Value;
         }
 

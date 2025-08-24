@@ -1,5 +1,6 @@
 ﻿using Sandbox.ModAPI;
 using System.Collections.Generic;
+using VRage.Game.GUI.TextPanel;
 using VRageMath;
 
 namespace Catopia.GasStation
@@ -113,7 +114,7 @@ namespace Catopia.GasStation
             position.Y += 3 * LineSpaceing;
 
 
-            frame.Add(NewTextSprite("No Ship Docked", position + new Vector2(viewport.Width / 2, 0), Color.Cyan, 1.5f, VRage.Game.GUI.TextPanel.TextAlignment.CENTER, DefaultFontId));
+            frame.Add(NewTextSprite("No Ship Docked", position + new Vector2(viewport.Width / 2, 0), Color.Cyan, 1.5f, TextAlignment.CENTER, DefaultFontId));
             position.Y += 5 * LineSpaceing;
 
 
@@ -162,6 +163,16 @@ namespace Catopia.GasStation
                 frame.Add(NewTextSprite("|", position, GreenCRT));
             }
             showCursor = !showCursor;
+
+            frame.Dispose();
+        }
+
+        internal void ScreenSleep()
+        {
+            var frame = GetFrame(Color.Black);
+            var position = new Vector2(viewport.Width / 2, viewport.Height / 2 - 20);
+
+            frame.Add(NewTextSprite("Press Button", position, Color.Cyan, 1.5f, TextAlignment.CENTER, DefaultFontId));
 
             frame.Dispose();
         }
