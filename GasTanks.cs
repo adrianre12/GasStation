@@ -1,10 +1,5 @@
-﻿using Sandbox.Game.EntityComponents;
-using Sandbox.ModAPI;
-using System;
+﻿using Sandbox.ModAPI;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Catopia.GasStation
 {
@@ -43,11 +38,11 @@ namespace Catopia.GasStation
                 if (newRatio > 1)
                 {
                     var tmp = Free;
-                    tank.ChangeFilledRatio(1,true);
+                    tank.ChangeFilledRatio(1, true);
                     return tmp;
                 }
 
-                tank.ChangeFilledRatio(newRatio,true);
+                tank.ChangeFilledRatio(newRatio, true);
                 return Amount;
             }
 
@@ -61,7 +56,7 @@ namespace Catopia.GasStation
                 if (tank.FilledRatio == 0)
                     return 0;
 
-                double newRatio = tank.FilledRatio - (double)Amount / (double)tank.Capacity ;
+                double newRatio = tank.FilledRatio - (double)Amount / (double)tank.Capacity;
                 if (newRatio < 0)
                 {
                     var tmp = Available;
@@ -70,7 +65,7 @@ namespace Catopia.GasStation
                 }
                 tank.ChangeFilledRatio(newRatio, true);
                 return Amount;
-                
+
             }
         }
 
@@ -80,7 +75,7 @@ namespace Catopia.GasStation
 
         public bool TanksMarkedForClose()
         {
-            foreach ( var gasTank in  tanks)
+            foreach (var gasTank in tanks)
             {
                 if (gasTank.tank.MarkedForClose)
                     return true;
@@ -88,24 +83,34 @@ namespace Catopia.GasStation
             return false;
         }
 
-        public double TotalCapacity { get {
+        public double TotalCapacity
+        {
+            get
+            {
                 double totalCapacity = 0;
                 foreach (var tank in tanks)
                 {
                     totalCapacity += tank.Capacity;
                 }
-                return totalCapacity; } 
+                return totalCapacity;
+            }
         }
-        public double TotalAvailable {  get {
+        public double TotalAvailable
+        {
+            get
+            {
                 double totalAvailable = 0;
-                foreach(var tank in tanks) { 
-                    totalAvailable += tank.Available; 
+                foreach (var tank in tanks)
+                {
+                    totalAvailable += tank.Available;
                 }
-                return totalAvailable; } 
+                return totalAvailable;
+            }
         }
         public double TotalFree { get { return TotalCapacity - TotalAvailable; } }
 
-        public GasTanks() {
+        public GasTanks()
+        {
             tanks = new List<GasTank>();
         }
 
@@ -118,7 +123,7 @@ namespace Catopia.GasStation
         {
             GasTank tank = new GasTank();
             tank.tank = myGasTank;
-            
+
             tanks.Add(tank);
         }
 
@@ -129,7 +134,7 @@ namespace Catopia.GasStation
         public int Fill(int AmountRequest, int tankSpread)
         {
             double amount = AmountRequest;
-            int ammountPerTank = AmountRequest/tankSpread;
+            int ammountPerTank = AmountRequest / tankSpread;
             int remainder = AmountRequest % tankSpread;
             tanks.Sort(
                 delegate (GasTank p1, GasTank p2)

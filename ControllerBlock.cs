@@ -1,16 +1,10 @@
 ﻿using Sandbox.Common.ObjectBuilders;
-using Sandbox.Common.ObjectBuilders.Definitions;
 using Sandbox.Game;
-using Sandbox.Game.Entities.Cube;
-using Sandbox.Game.EntityComponents;
 using Sandbox.ModAPI;
 using Sandbox.ModAPI.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Eventing.Reader;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
-using VRage;
 using VRage.Game;
 using VRage.Game.Components;
 using VRage.Game.Entity;
@@ -18,10 +12,8 @@ using VRage.Game.ModAPI;
 using VRage.Game.ModAPI.Network;
 using VRage.ModAPI;
 using VRage.ObjectBuilders;
-using VRage.ObjectBuilders.Private;
 using VRage.Sync;
 using VRageMath;
-using System.Linq;
 
 
 namespace Catopia.GasStation
@@ -32,16 +24,16 @@ namespace Catopia.GasStation
         private const string BUTTON_EMISSIVE_NAME = "Emissive1";
         private const int DEFAULT_BOOT_STEPS = 2;
 
-        private IMyTextPanel block;
-        private GasPump gasPump;
-        private MySync<bool, SyncDirection.BothWays> enableTransfer;
+        internal IMyTextPanel block;
+        internal GasPump gasPump;
+        internal MySync<bool, SyncDirection.BothWays> enableTransfer;
         private MySync<bool, SyncDirection.FromServer> enableTransferButton;
         private IMyShipConnector tradeConnector;
         private MyInventory tradeConnectorInventory;
         private MyInventory cashSourceInventory;
         private IMyCubeGrid stationCubeGrid;
         private DockedStateEnum dockedState = DockedStateEnum.Unknown;
-        private string dockedShipName;
+        internal string dockedShipName;
         private int bootSteps = DEFAULT_BOOT_STEPS;
 
         private List<string> screenText = new List<string>();
@@ -59,6 +51,7 @@ namespace Catopia.GasStation
 
         internal Config Settings = new Config();
         private string prevCDRef;
+        private ScreenTest screen0;
 
         private enum DockedStateEnum
         {
@@ -104,8 +97,8 @@ namespace Catopia.GasStation
                 enableTransferButton.ValueChanged += EnableTransferButton_ValueChanged;
             }
 
-            //block.IsWorkingChanged += Block_IsWorkingChanged;
-            //block.EnabledChanged += Block_EnabledChanged;
+            /*            block.IsWorkingChanged += Block_IsWorkingChanged;
+                        block.EnabledChanged += Block_EnabledChanged;*/
 
             if (!MyAPIGateway.Session.IsServer)
                 return;
@@ -124,6 +117,9 @@ namespace Catopia.GasStation
 
             NeedsUpdate |= MyEntityUpdateEnum.EACH_100TH_FRAME;
             block.CubeGrid.OnBlockRemoved += CubeGrid_OnBlockRemoved;
+
+            screen0 = new Screen0();
+            screen0.Init((IMyTextSurfaceProvider)block, 0);
         }
 
         public override void Close()
@@ -153,34 +149,37 @@ namespace Catopia.GasStation
             }
         }
 
-/*        private void Block_EnabledChanged(IMyTerminalBlock obj)
-        {
-            Log.Msg($"Enable Enabled={block.Enabled} IsWorking={block.IsWorking}");
+        /*        private void Block_EnabledChanged(IMyTerminalBlock obj)
+                {
+                    Log.Msg($"Enable Enabled={block.Enabled} IsWorking={block.IsWorking}");
 
-            if (!MyAPIGateway.Utilities.IsDedicated) //client only
-            {
-                UpdateEmissives();
-                return;
-            }
-            if (!block.Enabled)
-                Reset();
-        }
+                    if (!MyAPIGateway.Utilities.IsDedicated) //client only
+                    {
+                        UpdateEmissives();
+                        return;
+                    }
+                    if (!block.Enabled)
+                        Reset();
+                }
 
-        private void Block_IsWorkingChanged(IMyCubeBlock obj)
-        {
-            Log.Msg($"IsWorking Enabled={block.Enabled} IsWorking={block.IsWorking}");
+                private void Block_IsWorkingChanged(IMyCubeBlock obj)
+                {
+                    Log.Msg($"IsWorking Enabled={block.Enabled} IsWorking={block.IsWorking}");
 
-            if (!MyAPIGateway.Utilities.IsDedicated) //client only
-            {
-                UpdateEmissives();
-                return;
-            }
-            if (!block.IsWorking)
-                Reset();
-        }*/
+                    if (!MyAPIGateway.Utilities.IsDedicated) //client only
+                    {
+                        UpdateEmissives();
+                        return;
+                    }
+                    if (!block.IsWorking)
+                        Reset();
+                }*/
 
         public override void UpdateAfterSimulation100()
         {
+            screen0.ScreenDocked(1000, 20000, 1000, this);
+            return;
+
             enableTransferButton.Value = false;
 
             //Log.Msg($"Tick {block.CubeGrid.DisplayName} IsWorking={block.IsWorking}");

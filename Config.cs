@@ -1,17 +1,7 @@
-﻿using ProtoBuf;
-using Sandbox.Engine.Utils;
-using Sandbox.Game;
-using Sandbox.Game.EntityComponents;
-using Sandbox.ModAPI;
+﻿using Sandbox.ModAPI;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using VRage.Game;
-using VRage.Game.ModAPI;
 using VRage.Game.ModAPI.Ingame.Utilities;
-using VRage.ModAPI;
 using static Catopia.GasStation.ControllerBlock;
 
 namespace Catopia.GasStation
@@ -40,7 +30,7 @@ namespace Catopia.GasStation
                 Log.Msg("Error in CD, creating a new config.");
                 GasPumpIdentifier = DefaultGasPumpIdentifier;
                 PricePerKL = DefaultPricePerKL;
-                CreditMethod=DefaultCreditMethod;
+                CreditMethod = DefaultCreditMethod;
 
                 SaveConfigToCD(block);
             }

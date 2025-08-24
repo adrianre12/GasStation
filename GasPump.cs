@@ -1,13 +1,8 @@
 ﻿using Sandbox.Definitions;
-using Sandbox.Game;
 using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
-using Sandbox.ModAPI.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using VRage.Game;
 using VRage.Game.ModAPI;
 
@@ -19,19 +14,22 @@ namespace Catopia.GasStation
         private const int MaxMultiplier = 5;
 
         private GasTanks targetH2Tanks = new GasTanks();
-        internal GasTanks TargetH2Tanks { get {  return targetH2Tanks; } }
+        internal GasTanks TargetH2Tanks { get { return targetH2Tanks; } }
         private GasTanks sourceH2Tanks = new GasTanks();
-        internal GasTanks SourceH2Tanks {  get { return sourceH2Tanks; } }
+        internal GasTanks SourceH2Tanks { get { return sourceH2Tanks; } }
 
         private static MyDefinitionId H2DefId = MyDefinitionId.Parse("MyObjectBuilder_GasProperties/Hydrogen");
 
-        internal int SorurceTanksCount { get { return sourceH2Tanks.Count;  } }
+        internal int SorurceTanksCount { get { return sourceH2Tanks.Count; } }
         internal int TargetTanksCount { get { return targetH2Tanks.Count; } }
 
-        internal int TransferMultiplier { get
+        internal int TransferMultiplier
+        {
+            get
             {
                 return (int)Math.Min(MaxMultiplier, (int)Math.Min(SorurceTanksCount, TargetTanksCount));
-            } }
+            }
+        }
 
         private IMyCubeGrid stationCubeGrid;
 
@@ -44,7 +42,7 @@ namespace Catopia.GasStation
             Error
         }
 
-        public GasPump( IMyCubeGrid cubeGrid)
+        public GasPump(IMyCubeGrid cubeGrid)
         {
             stationCubeGrid = cubeGrid;
         }
@@ -61,7 +59,7 @@ namespace Catopia.GasStation
 
         public bool TargetTanksMarkedForClose()
         {
-            return  targetH2Tanks.TanksMarkedForClose();
+            return targetH2Tanks.TanksMarkedForClose();
         }
 
         public TransferResult BatchTransfer(int maxFillKL, out int transferedKL)
@@ -74,25 +72,25 @@ namespace Catopia.GasStation
 
             switch (transferResult)
             {
-/*                case TransferResult.Continue:
-                    {
-                        break;
-                    }
-                case TransferResult.FullTarget:
-                    {
-                        //Log.Debug("Target Full");
-                        break;
-                    }
-                case TransferResult.EmptySource:
-                    {
-                        //Log.Debug("Source Empty");
-                        break;
-                    }
-                case TransferResult.NotEnoughCash:
-                    {
-                        //.Msg("Not Enough Cash");
-                        break;
-                    }*/
+                /*                case TransferResult.Continue:
+                                    {
+                                        break;
+                                    }
+                                case TransferResult.FullTarget:
+                                    {
+                                        //Log.Debug("Target Full");
+                                        break;
+                                    }
+                                case TransferResult.EmptySource:
+                                    {
+                                        //Log.Debug("Source Empty");
+                                        break;
+                                    }
+                                case TransferResult.NotEnoughCash:
+                                    {
+                                        //.Msg("Not Enough Cash");
+                                        break;
+                                    }*/
                 case TransferResult.Error:
                     {
                         Log.Msg("Error transfer stopped");
