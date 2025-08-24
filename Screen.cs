@@ -29,6 +29,11 @@ namespace Catopia.GasStation
 
         public MySpriteDrawFrame GetFrame()
         {
+            return GetFrame(BackgroundColor);
+        }
+
+        public MySpriteDrawFrame GetFrame(Color color)
+        {
             var frame = surface.DrawFrame();
             frame.Add(new MySprite() //Background
             {
@@ -36,7 +41,7 @@ namespace Catopia.GasStation
                 Data = "White screen",
                 Position = viewport.Center,
                 Size = viewport.Size,
-                Color = BackgroundColor,
+                Color = color,
                 Alignment = TextAlignment.CENTER
             });
             return frame;
@@ -50,6 +55,10 @@ namespace Catopia.GasStation
         internal MySprite NewTextSprite(string text, Vector2 position, float scale)
         {
             return NewTextSprite(text, position, DefaultColor, scale, DefaultAlignment, DefaultFontId);
+        }
+        internal MySprite NewTextSprite(string text, Vector2 position, Color color)
+        {
+            return NewTextSprite(text, position, color, DefaultRotationOrScale, DefaultAlignment, DefaultFontId);
         }
 
         internal MySprite NewTextSprite(string text, Vector2 position, float scale, TextAlignment alignment)
