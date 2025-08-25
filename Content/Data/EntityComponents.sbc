@@ -7,7 +7,7 @@
 				<SubtypeId>GasStation</SubtypeId>
 			</Id>
 			<Size x="1" y="1" z="1" />
-			<InputConstraint Whitelist="true" Description="SpaceCredits" Icon="Textures\GUI\Icons\buttons\Other.dds">
+			<InputConstraint Whitelist="true" Description="SpaceCredits" Icon="Textures\GUI\Icons\buttons\SpaceCredits.dds">
 				<Entry Type="PhysicalObject" Subtype="SpaceCredit" />
 			</InputConstraint>
 		</EntityComponent>

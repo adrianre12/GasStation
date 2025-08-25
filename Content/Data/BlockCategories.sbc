@@ -7,7 +7,7 @@
                 <SubtypeId/>
             </Id>
             <DisplayName>GasStation</DisplayName>
-            <Name>GasStation</Name>
+            <Name>ZZZZZ GasStation</Name>
 			<StrictSearch>true</StrictSearch>
             <ItemIds>
                 <string>TextPanel/GasStationController</string>

@@ -7,7 +7,7 @@
 				<SubtypeId>GasStationController</SubtypeId>
 			</Id>
 			<DisplayName>Gas Station Controller</DisplayName>
-			<Icon>Textures\GUI\Icons\AstronautBackpack.dds</Icon>
+			<Icon>Textures\GUI\Icons\Cubes\GasStationController.dds</Icon>
 			<Description>Description_TextPanel</Description>
 			<CubeSize>Large</CubeSize>
 			<BlockTopology>TriangleMesh</BlockTopology>
@@ -15,7 +15,8 @@
 			<ModelOffset x="0" y="0" z="0"/>
 			<Model>Models\Cubes\large\GasStationController.mwm</Model>
 			<Components>
-				<Component Subtype="InteriorPlate" Count="1" />
+				<Component Subtype="SteelPlate" Count="10" />
+				<Component Subtype="InteriorPlate" Count="8" />
 				<Component Subtype="Construction" Count="6" />
 				<!--<Component Subtype="Computer" Count="6" />-->
 				<Component Subtype="Display" Count="10" />

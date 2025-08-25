@@ -22,7 +22,7 @@ namespace Catopia.GasStation
     {
         private const string BUTTON_EMISSIVE_NAME = "Emissive1";
         private const int DEFAULT_BOOT_STEPS = 2;
-        private const int DEFAULT_SLEEP_COUNT = 17; //187;
+        private const int DEFAULT_SLEEP_COUNT = 187;
 
         internal IMyTextPanel block;
         internal GasPump gasPump;
@@ -38,8 +38,6 @@ namespace Catopia.GasStation
         private DockedStateEnum dockedState = DockedStateEnum.Unknown;
         internal string dockedShipName;
         private int bootSteps = DEFAULT_BOOT_STEPS;
-
-        // private List<string> screenText = new List<string>();
 
         private Color BLACK = new Color(0, 0, 0);
         private Color RED = new Color(255, 0, 0);
@@ -99,9 +97,6 @@ namespace Catopia.GasStation
                 enableTransferButton.ValueChanged += EnableTransferButton_ValueChanged;
             }
 
-            /*            block.IsWorkingChanged += Block_IsWorkingChanged;
-                        block.EnabledChanged += Block_EnabledChanged;*/
-
             if (!MyAPIGateway.Session.IsServer)
                 return;
 
@@ -128,7 +123,6 @@ namespace Catopia.GasStation
         private void SleepWake_ValueChanged(MySync<bool, SyncDirection.BothWays> obj)
         {
             Log.Msg($"Wake {sleepWake.Value}, mode = {sleepMode}");
-            //sleepWake.Value = false;
             sleepCounter = 0;
             if (!sleepMode)
                 return;
@@ -141,17 +135,14 @@ namespace Catopia.GasStation
 
             enableTransferButton.Value = false;
 
-            //Log.Msg($"Tick {block.CubeGrid.DisplayName} IsWorking={block.IsWorking}");
             if (!block.Enabled || !block.IsFunctional || !block.IsWorking)
             {
                 Reset();
                 return;
             }
-            Log.Msg($"SleepMode={sleepMode} Counter={sleepCounter}");
 
             if (sleepMode)
             {
-                Log.Msg($"counter={sleepCounter}");
                 if (--sleepCounter > 0)
                     return;
                 sleepCounter = 5;
@@ -241,7 +232,6 @@ namespace Catopia.GasStation
                         }
                     case DockedStateEnum.UnDocked:
                         {
-                            //Log.Msg(">>target tanks reset");
                             dockedShipName = null;
                             screen0.ScreenText($"No Ship Docked");
                             gasPump.TargetTanksReset();
@@ -304,8 +294,6 @@ namespace Catopia.GasStation
         {
             enableTransfer.ValueChanged -= EnableTransfer_ValueChanged;
             enableTransferButton.ValueChanged -= EnableTransferButton_ValueChanged;
-            //block.EnabledChanged -= Block_EnabledChanged;
-            //block.IsWorkingChanged -= Block_IsWorkingChanged;
             block.CubeGrid.OnBlockRemoved -= CubeGrid_OnBlockRemoved;
             block.CubeGrid.OnBlockAdded -= CubeGrid_OnBlockAdded;
             base.Close();
@@ -334,32 +322,6 @@ namespace Catopia.GasStation
                 screen0.ScreenText("Gas Tank Removed");
             }
         }
-
-        /*        private void Block_EnabledChanged(IMyTerminalBlock obj)
-                {
-                    Log.Msg($"Enable Enabled={block.Enabled} IsWorking={block.IsWorking}");
-
-                    if (!MyAPIGateway.Utilities.IsDedicated) //client only
-                    {
-                        UpdateEmissives();
-                        return;
-                    }
-                    if (!block.Enabled)
-                        Reset();
-                }
-
-                private void Block_IsWorkingChanged(IMyCubeBlock obj)
-                {
-                    Log.Msg($"IsWorking Enabled={block.Enabled} IsWorking={block.IsWorking}");
-
-                    if (!MyAPIGateway.Utilities.IsDedicated) //client only
-                    {
-                        UpdateEmissives();
-                        return;
-                    }
-                    if (!block.IsWorking)
-                        Reset();
-                }*/
 
         private bool TryTransferCash(int transferedKL)
         {
