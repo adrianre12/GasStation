@@ -114,7 +114,6 @@ namespace Catopia.GasStation
 
             NeedsUpdate |= MyEntityUpdateEnum.EACH_100TH_FRAME;
             block.CubeGrid.OnBlockRemoved += CubeGrid_OnBlockRemoved;
-            block.CubeGrid.OnBlockAdded += CubeGrid_OnBlockAdded;
             sleepWake.ValueChanged += SleepWake_ValueChanged;
             screen0 = new Screen0();
             screen0.Init((IMyTextSurfaceProvider)block, 0);
@@ -122,7 +121,7 @@ namespace Catopia.GasStation
 
         private void SleepWake_ValueChanged(MySync<bool, SyncDirection.BothWays> obj)
         {
-            Log.Msg($"Wake {sleepWake.Value}, mode = {sleepMode}");
+            //Log.Msg($"Wake {sleepWake.Value}, mode = {sleepMode}");
             sleepCounter = 0;
             if (!sleepMode)
                 return;
@@ -295,21 +294,13 @@ namespace Catopia.GasStation
             enableTransfer.ValueChanged -= EnableTransfer_ValueChanged;
             enableTransferButton.ValueChanged -= EnableTransferButton_ValueChanged;
             block.CubeGrid.OnBlockRemoved -= CubeGrid_OnBlockRemoved;
-            block.CubeGrid.OnBlockAdded -= CubeGrid_OnBlockAdded;
             base.Close();
         }
 
 
-        private void CubeGrid_OnBlockAdded(IMySlimBlock obj)
-        {
-            Log.Msg("BLOCK ADDED");
-            ;
-        }
 
         private void CubeGrid_OnBlockRemoved(IMySlimBlock obj)
         {
-            Log.Msg("BLOCK REMOVED");
-
             if (tradeConnector != null && tradeConnector.MarkedForClose)
             {
                 Reset();
@@ -386,7 +377,7 @@ namespace Catopia.GasStation
             List<IMyPlayer> players = new List<IMyPlayer>();
             MyAPIGateway.Multiplayer.Players.GetPlayers(players, (p) => { return p.IdentityId == gridOwner; });
 
-            Log.Msg($"players.Count = {players?.Count}");
+            //Log.Msg($"players.Count = {players?.Count}");
 
             if (players == null || players.Count == 0)
                 return false;

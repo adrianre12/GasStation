@@ -1,10 +1,13 @@
 ﻿using Sandbox.ModAPI;
+using System;
 using System.Collections.Generic;
 
 namespace Catopia.GasStation
 {
     internal class GasTanks
     {
+        private const double FillRatioDelta = 1.6 / 20; //1.6=100 ticks, 20s time to fill at vanilla stockpile rate
+
         public struct GasTank
         {
             public IMyGasTank tank;
@@ -24,16 +27,17 @@ namespace Catopia.GasStation
             public double Free { get { return (tank.Capacity * (1 - tank.FilledRatio)); } }
 
             /// <summary>
-            /// Add gas to tank
+            /// Add gas to tank, rate limited
             /// </summary>
             /// <param name="Amount"></param>
             /// <returns>the amount gas added</returns>
-            public double Fill(int Amount)
+            public double Fill(long Amount)
             {
                 if (tank.FilledRatio == 1)
                     return 0;
 
-                double newRatio = (double)Amount / (double)tank.Capacity + tank.FilledRatio;
+                double ratioDelta = Math.Min((double)Amount / (double)tank.Capacity, FillRatioDelta);
+                double newRatio = tank.FilledRatio + ratioDelta; ;
 
                 if (newRatio > 1)
                 {
@@ -43,20 +47,21 @@ namespace Catopia.GasStation
                 }
 
                 tank.ChangeFilledRatio(newRatio, true);
-                return Amount;
+                return ratioDelta * tank.Capacity;
             }
 
             /// <summary>
-            /// Remove gas from tank
+            /// Remove gas from tank, rate unlimited
             /// </summary>
             /// <param name="Amount"></param>
             /// <returns>the amount of gas removed</returns>
-            public double Drain(int Amount)
+            public double Drain(long Amount)
             {
                 if (tank.FilledRatio == 0)
                     return 0;
 
                 double newRatio = tank.FilledRatio - (double)Amount / (double)tank.Capacity;
+
                 if (newRatio < 0)
                 {
                     var tmp = Available;
@@ -131,11 +136,11 @@ namespace Catopia.GasStation
         /// Add gas to tanks
         /// </summary>
         /// <returns>the amount gas added</returns>
-        public int Fill(int AmountRequest, int tankSpread)
+        public long Fill(long AmountRequest, int tanksPerTransfer)
         {
             double amount = AmountRequest;
-            int ammountPerTank = AmountRequest / tankSpread;
-            int remainder = AmountRequest % tankSpread;
+            long ammountPerTank = AmountRequest / tanksPerTransfer;
+            long remainder = AmountRequest % tanksPerTransfer;
             tanks.Sort(
                 delegate (GasTank p1, GasTank p2)
                 {
@@ -155,11 +160,11 @@ namespace Catopia.GasStation
         /// Remove gas from tank
         /// </summary>
         /// <returns>the amount of gas removed</returns>
-        public int Drain(int AmountRequest, int tankSpread)
+        public long Drain(long AmountRequest, int tanksPerTransfer)
         {
             double amount = AmountRequest;
-            int ammountPerTank = AmountRequest / tankSpread;
-            int remainder = AmountRequest % tankSpread;
+            long ammountPerTank = AmountRequest / tanksPerTransfer;
+            long remainder = AmountRequest % tanksPerTransfer;
             tanks.Sort(
                 delegate (GasTank p1, GasTank p2)
             {
@@ -172,7 +177,7 @@ namespace Catopia.GasStation
                 if (amount <= 0)
                     break;
             }
-            return AmountRequest - (int)amount;
+            return AmountRequest - (long)amount;
         }
     }
 }
