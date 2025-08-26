@@ -22,7 +22,7 @@
     <AdditionalFiles Include="Content\*\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </AdditionalFiles>
-    <AdditionalFiles Include="thumb.png" Condition="Exists('thumb.png')">
+    <AdditionalFiles Include="thumb.jpg" Condition="Exists('thumb.jpg')">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </AdditionalFiles>
     <AdditionalFiles Remove="Content\*\**\*.cs" />
