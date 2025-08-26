@@ -61,7 +61,7 @@ namespace Catopia.GasStation
                     return 0;
 
                 double newRatio = tank.FilledRatio - (double)Amount / (double)tank.Capacity;
-
+                //Log.Msg($"newRatio={newRatio}, Available={Available} Amount={Amount} Cpacity={tank.Capacity} filledRatio={tank.FilledRatio} delta={(double)Amount / (double)tank.Capacity}");
                 if (newRatio < 0)
                 {
                     var tmp = Available;
@@ -136,11 +136,11 @@ namespace Catopia.GasStation
         /// Add gas to tanks
         /// </summary>
         /// <returns>the amount gas added</returns>
-        public long Fill(long AmountRequest, int tanksPerTransfer)
+        public long Fill(long AmountRequest)
         {
-            double amount = AmountRequest;
-            long ammountPerTank = AmountRequest / tanksPerTransfer;
-            long remainder = AmountRequest % tanksPerTransfer;
+            double amount = 0;
+            long ammountPerTank = AmountRequest / tanks.Count;
+            long remainder = AmountRequest % tanks.Count;
             tanks.Sort(
                 delegate (GasTank p1, GasTank p2)
                 {
@@ -148,23 +148,23 @@ namespace Catopia.GasStation
                 });
             foreach (var tank in tanks)
             {
-                amount -= tank.Fill(ammountPerTank + remainder);
+                amount += tank.Fill(ammountPerTank + remainder);
                 remainder = 0;
-                if (amount <= 0)
+                if (amount >= AmountRequest)
                     break;
             }
-            return AmountRequest - (int)amount;
+            return (long)amount;
         }
 
         /// <summary>
         /// Remove gas from tank
         /// </summary>
         /// <returns>the amount of gas removed</returns>
-        public long Drain(long AmountRequest, int tanksPerTransfer)
+        public long Drain(long AmountRequest)
         {
-            double amount = AmountRequest;
-            long ammountPerTank = AmountRequest / tanksPerTransfer;
-            long remainder = AmountRequest % tanksPerTransfer;
+            double amount = 0;// AmountRequest;
+            long ammountPerTank = AmountRequest / tanks.Count; ;
+            long remainder = AmountRequest % tanks.Count; ;
             tanks.Sort(
                 delegate (GasTank p1, GasTank p2)
             {
@@ -172,12 +172,14 @@ namespace Catopia.GasStation
             });
             foreach (var tank in tanks)
             {
-                amount -= tank.Drain(ammountPerTank + remainder);
+                amount += tank.Drain(ammountPerTank + remainder);
                 remainder = 0;
-                if (amount <= 0)
+                //Log.Msg($"Amount drained = {amount}");
+                if (amount >= AmountRequest)
                     break;
             }
-            return AmountRequest - (long)amount;
+            //Log.Msg($"Total Amount drained = {amount}");
+            return (long)amount;
         }
     }
 }

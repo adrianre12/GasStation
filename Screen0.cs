@@ -1,4 +1,5 @@
 ﻿using Sandbox.ModAPI;
+using System;
 using System.Collections.Generic;
 using VRage.Game.GUI.TextPanel;
 using VRageMath;
@@ -33,7 +34,7 @@ namespace Catopia.GasStation
             position.Y += LineSpaceing;
 
             frame.Add(NewTextSprite("H2 Available:", position));
-            var availableKL = (int)controller.gasPump.SourceH2Tanks.TotalAvailable / 1000;
+            var availableKL = (int)Math.Round(controller.gasPump.SourceH2Tanks.TotalAvailable / 100) / 10; //fudge the rounding for display
             frame.Add(NewTextSprite($"{availableKL}KL", position + positionX150, availableKL > freeSpaceKL ? Color.Green : Color.Red));
             position.Y += LineSpaceing;
 

@@ -10,8 +10,6 @@ namespace Catopia.GasStation
 {
     internal class GasPump
     {
-        private const int MaxTanksPerTransfer = 5;
-
         private GasTanks targetH2Tanks = new GasTanks();
         internal GasTanks TargetH2Tanks { get { return targetH2Tanks; } }
         private GasTanks sourceH2Tanks = new GasTanks();
@@ -21,14 +19,6 @@ namespace Catopia.GasStation
 
         internal int SorurceTanksCount { get { return sourceH2Tanks.Count; } }
         internal int TargetTanksCount { get { return targetH2Tanks.Count; } }
-
-        internal int TanksPerTransfer
-        {
-            get
-            {
-                return (int)Math.Min(MaxTanksPerTransfer, (int)Math.Min(SorurceTanksCount, TargetTanksCount));
-            }
-        }
 
         private IMyCubeGrid stationCubeGrid;
 
@@ -65,7 +55,7 @@ namespace Catopia.GasStation
         {
             transferedKL = 0;
             TransferResult transferResult = TransferGas(transferRequestKL, out transferedKL);
-            //Log.Msg($"TransferGas transferRequestKL={transferRequestKL} transferResult ={transferResult.ToString()} transferedL={transferedKL}");
+            //Log.Msg($"TransferGas transferRequestKL={transferRequestKL} transferResult ={transferResult.ToString()} transferedKL={transferedKL}");
 
             switch (transferResult)
             {
@@ -102,29 +92,31 @@ namespace Catopia.GasStation
         private TransferResult TransferGas(long transferRequestKL, out int transferedKL)
         {
             transferedKL = 0;
-
+            //Log.Msg($"transferRequestKL={transferRequestKL}");
             //check source gas available 
-            long transferL = (long)Math.Min(transferRequestKL * 1000, sourceH2Tanks.TotalAvailable);
+            long transferL = (long)Math.Round(Math.Min(transferRequestKL * 1000, sourceH2Tanks.TotalAvailable));
             if (transferL == 0)
                 return TransferResult.EmptySource;
-
+            //Log.Msg($"transferL={transferL} after source tank check");
             //check target tank space available
-            transferL = (long)Math.Min(transferL, targetH2Tanks.TotalFree);
+            transferL = (long)Math.Round(Math.Min(transferL, targetH2Tanks.TotalFree));
+            //Log.Msg($"transferL={transferL} after target tank check");
 
             if (transferL == 0)
                 return TransferResult.FullTarget;
 
+
             // add gas to target
-            long amountFilled = targetH2Tanks.Fill(transferL, TanksPerTransfer);
+            long amountFilled = targetH2Tanks.Fill(transferL);
 
             //remove gas from source
-            long amountDrained = sourceH2Tanks.Drain(amountFilled, TanksPerTransfer);
-            //Log.Debug($"Transfered {transferedL}");
+            double amountDrained = sourceH2Tanks.Drain(amountFilled);
+            //Log.Msg($"transferL={transferL} amountFilled={amountFilled} amountDrained=={amountDrained}");
 
             transferedKL = (int)amountFilled / 1000;
-            if (amountDrained != amountFilled)
+            if (Math.Abs(amountDrained - amountFilled) > 100) //acount for rounding errors
             {
-                Log.Msg($"Amount drained != filled {amountDrained} != {amountFilled}");
+                Log.Msg($"Amount drained != filled [ {amountDrained} != {amountFilled} ]");
                 return TransferResult.Error;
             }
 

@@ -243,12 +243,14 @@ namespace Catopia.GasStation
 
             var cashSC = (int)cashSourceInventory.GetItemAmount(SCDefId);
             var freeSpaceKL = (int)gasPump.TargetH2Tanks.TotalFree / 1000;
-            var maxFillKL = (int)Math.Min(freeSpaceKL, cashSC / Settings.PricePerKL);
+            int minGasKL = (int)Math.Round(Math.Min(gasPump.TargetH2Tanks.TotalFree, gasPump.SourceH2Tanks.TotalAvailable) / 1000);
+            var maxFillKL = Math.Min(minGasKL, cashSC / Settings.PricePerKL);
+            //Log.Msg($"Controller minGasKL={minGasKL} maxFillKL ={maxFillKL} freeSpaceKL ={freeSpaceKL} TotalAvailable={gasPump.SourceH2Tanks.TotalAvailable / 1000} Afford={cashSC / Settings.PricePerKL}");
             switch (dockedState)
             {
                 case DockedStateEnum.Docked:
                     {
-                        screen0.ScreenDocked(cashSC, freeSpaceKL, maxFillKL, this);
+                        screen0.ScreenDocked(cashSC, freeSpaceKL, (int)maxFillKL, this);
                         enableTransferButton.Value = maxFillKL > 0;
                         break;
                     }
