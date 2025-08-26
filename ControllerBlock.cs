@@ -22,7 +22,7 @@ namespace Catopia.GasStation
     {
         private const string BUTTON_EMISSIVE_NAME = "Emissive1";
         private const int DEFAULT_BOOT_STEPS = 2;
-        private const int DEFAULT_SLEEP_COUNT = 187;
+        private const int DEFAULT_SLEEP_COUNT = 375; //10 mins
 
         internal IMyTextPanel block;
         internal GasPump gasPump;
