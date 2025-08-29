@@ -94,6 +94,7 @@ namespace Catopia.GasStation
                 CashSourceInventory_ContentsChanged(cashSourceInventory);
                 enableTransfer.ValueChanged += EnableTransfer_ValueChanged;
                 enableTransferButton.ValueChanged += EnableTransferButton_ValueChanged;
+                NamePanel("NamePanelBlank", false);
                 NamePanel("NamePanelH2", false);
                 NamePanel("NamePanelO2", false);
                 NamePanel("NamePanelPower", false);
@@ -234,7 +235,7 @@ namespace Catopia.GasStation
                         {
                             dockedShipName = null;
                             screen0.ScreenText($"No Ship Docked");
-                            energyPump.TargetHolderssReset();
+                            energyPump.TargetHoldersReset();
                             enableTransfer.Value = false;
                             break;
                         }
@@ -392,7 +393,7 @@ namespace Catopia.GasStation
         {
             tradeConnector = null;
             tradeConnectorInventory = null;
-            energyPump = new HydrogenPump(stationCubeGrid);
+            energyPump.Clear();
             enableTransfer.Value = false;
             enableTransferButton.Value = false;
             dockedState = DockedStateEnum.Unknown;

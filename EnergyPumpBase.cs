@@ -7,15 +7,14 @@ using VRage.Game.ModAPI;
 
 namespace Catopia.GasStation.Pump
 {
-    internal abstract class EnergyPumpBase
+    internal abstract class EnergyPumpBase //: IEnergyPumpBase
     {
-        internal EnergyHolders targetEnergy = new EnergyHolders();
-        public EnergyHolders TargetEnergy { get { return targetEnergy; } }
         internal EnergyHolders sourceEnergy = new EnergyHolders();
         public EnergyHolders SourceEnergy { get { return sourceEnergy; } }
-
-        internal int SorurceHoldersCount { get { return sourceEnergy.Count; } }
-        internal int TargetHoldersCount { get { return targetEnergy.Count; } }
+        internal EnergyHolders targetEnergy = new EnergyHolders();
+        public EnergyHolders TargetEnergy { get { return targetEnergy; } }
+        public int SorurceHoldersCount { get { return sourceEnergy.Count; } }
+        public int TargetHoldersCount { get { return targetEnergy.Count; } }
 
         private MyCubeGrid stationCubeGrid;
 
@@ -33,7 +32,13 @@ namespace Catopia.GasStation.Pump
             stationCubeGrid = cubeGrid as MyCubeGrid;
         }
 
-        public void TargetHolderssReset()
+        public void Clear()
+        {
+            sourceEnergy.Clear();
+            targetEnergy.Clear();
+        }
+
+        public void TargetHoldersReset()
         {
             targetEnergy.Clear();
         }
@@ -120,7 +125,7 @@ namespace Catopia.GasStation.Pump
             return TransferResult.Continue;
         }
 
-        internal bool TryFindTargets(IMyShipConnector tradeConnector, out string shipName)
+        public bool TryFindTargets(IMyShipConnector tradeConnector, out string shipName)
         {
             shipName = null; ;
             targetEnergy.Clear();
@@ -159,7 +164,7 @@ namespace Catopia.GasStation.Pump
 
         protected abstract void CheckAndAddHolder(MyCubeBlock fatBlock, bool isTarget, ref EnergyHolders energyHolders);
 
-        internal bool TryFindSources(IMyShipConnector tradeConnector, string gasPumpIdentifier)
+        public bool TryFindSources(IMyShipConnector tradeConnector, string gasPumpIdentifier)
         {
             sourceEnergy.Clear();
             if (stationCubeGrid == null)
