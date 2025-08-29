@@ -5,10 +5,15 @@ using VRage.Game.Components;
 
 namespace Catopia.GasStation
 {
-    [MyEntityComponentDescriptor(typeof(MyObjectBuilder_TextPanel), false, new[] { "GasStationController" })]
-    public class ControllerBlock : ControllerBlockBase
+    [MyEntityComponentDescriptor(typeof(MyObjectBuilder_TextPanel), false, new[] { "GasStationControllerH2" })]
+    public class ControllerBlockH2 : ControllerBlockBase
     {
-        protected override void ControllerSetup()
+        protected override void ControllerSetupClient()
+        {
+            NamePanel("NamePanelH2", true);
+        }
+
+        protected override void ControllerSetupServer()
         {
             energyPump = new HydrogenPump(stationCubeGrid);
             screen0 = new ScreenGas();

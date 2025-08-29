@@ -10,7 +10,7 @@ namespace Catopia.GasStation
     public class GasStationToggleFill : MyUseObjectBase
     {
         private IMyTextPanel block;
-        private ControllerBlock controller;
+        private ControllerBlockBase controller;
 
         public override UseActionEnum SupportedActions => UseActionEnum.Manipulate
                                                         | UseActionEnum.Close
@@ -30,7 +30,7 @@ namespace Catopia.GasStation
         public GasStationToggleFill(IMyEntity owner, string dummyName, IMyModelDummy dummyData, uint shapeKey) : base(owner, dummyData)
         {
             block = owner as IMyTextPanel;
-            controller = block.GameLogic.GetAs<ControllerBlock>();
+            controller = block.GameLogic.GetAs<ControllerBlockBase>();
         }
 
         public override MyActionDescription GetActionInfo(UseActionEnum actionEnum)

@@ -94,6 +94,11 @@ namespace Catopia.GasStation
                 CashSourceInventory_ContentsChanged(cashSourceInventory);
                 enableTransfer.ValueChanged += EnableTransfer_ValueChanged;
                 enableTransferButton.ValueChanged += EnableTransferButton_ValueChanged;
+                NamePanel("NamePanelH2", false);
+                NamePanel("NamePanelO2", false);
+                NamePanel("NamePanelPower", false);
+
+                ControllerSetupClient();
             }
 
             if (!MyAPIGateway.Session.IsServer)
@@ -109,10 +114,12 @@ namespace Catopia.GasStation
             block.CubeGrid.OnBlockRemoved += CubeGrid_OnBlockRemoved;
             sleepWake.ValueChanged += SleepWake_ValueChanged;
 
-            ControllerSetup();
+            ControllerSetupServer();
         }
 
-        protected abstract void ControllerSetup();
+        protected abstract void ControllerSetupClient();
+
+        protected abstract void ControllerSetupServer();
 
         private void SleepWake_ValueChanged(MySync<bool, SyncDirection.BothWays> obj)
         {
@@ -126,7 +133,6 @@ namespace Catopia.GasStation
 
         public override void UpdateAfterSimulation100()
         {
-
             enableTransferButton.Value = false;
 
             if (!block.Enabled || !block.IsFunctional || !block.IsWorking)
@@ -428,6 +434,22 @@ namespace Catopia.GasStation
         }
 
         // On client
+
+        protected void NamePanel(string subpartName, bool visible)
+        {
+            try
+            {
+                MyEntitySubpart subpart;
+                if (Entity.TryGetSubpart(subpartName, out subpart)) // subpart does not exist when block is in build stage
+                {
+                    subpart.Render.Visible = visible;
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Msg(e.ToString());
+            }
+        }
 
         private void CashSourceInventory_ContentsChanged(MyInventoryBase cashInventory)
         {

@@ -10,8 +10,10 @@
             <Name>ZZZZZ GasStation</Name>
 			<StrictSearch>true</StrictSearch>
             <ItemIds>
-                <string>TextPanel/GasStationController</string>
-            </ItemIds>
+                <string>TextPanel/GasStationControllerH2</string>
+				<string>TextPanel/GasStationControllerO2</string>
+				<string>TextPanel/GasStationControllerPower</string>
+			</ItemIds>
         </Category>
     </CategoryClasses>
 </Definitions>
