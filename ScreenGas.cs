@@ -6,7 +6,7 @@ using VRageMath;
 
 namespace Catopia.GasStation
 {
-    internal class Screen0 : ScreenBase
+    internal class ScreenGas : ScreenBase
     {
         private List<string> screenText = new List<string>();
         private bool showCursor;
@@ -20,7 +20,7 @@ namespace Catopia.GasStation
             BackgroundColor = Color.MidnightBlue;
         }
 
-        internal void ScreenDocked(int cashSC, int freeSpaceKL, int maxFillKL, ControllerBlock controller)
+        internal void ScreenDocked(int cashSC, int freeSpaceKL, int maxFillKL, ControllerBlockBase controller)
         {
             var frame = GetFrame();
             var position = new Vector2(5, 0);
@@ -33,8 +33,8 @@ namespace Catopia.GasStation
             frame.Add(NewTextSprite($"'{controller.block.CubeGrid.DisplayName}'", position + positionX150, Color.Cyan));
             position.Y += LineSpaceing;
 
-            frame.Add(NewTextSprite("H2 Available:", position));
-            var availableKL = (int)Math.Round(controller.gasPump.SourceH2Tanks.TotalAvailable / 100) / 10; //fudge the rounding for display
+            frame.Add(NewTextSprite("Gas Available:", position));
+            var availableKL = (int)Math.Round(controller.energyPump.SourceEnergy.TotalAvailable / 100) / 10; //fudge the rounding for display
             frame.Add(NewTextSprite($"{availableKL}KL", position + positionX150, availableKL > freeSpaceKL ? Color.Green : Color.Red));
             position.Y += LineSpaceing;
 
@@ -47,8 +47,8 @@ namespace Catopia.GasStation
             position.Y += LineSpaceing;
 
             frame.Add(NewTextSprite("Free Space:", position));
-            var tankStr = controller.gasPump.TargetTanksCount > 0 ? "tanks" : "tank";
-            frame.Add(NewTextSprite($"{freeSpaceKL}KL in {controller.gasPump.TargetTanksCount} {tankStr}", position + positionX150));
+            var tankStr = controller.energyPump.TargetHoldersCount > 0 ? "tanks" : "tank";
+            frame.Add(NewTextSprite($"{freeSpaceKL}KL in {controller.energyPump.TargetHoldersCount} {tankStr}", position + positionX150));
             position.Y += LineSpaceing;
 
             frame.Add(NewTextSprite("Max Price:", position));
@@ -88,7 +88,7 @@ namespace Catopia.GasStation
         }
 
 
-        internal void ScreenUndocked(int cashSC, ControllerBlock controller)
+        internal void ScreenUndocked(int cashSC, ControllerBlockBase controller)
         {
             var frame = GetFrame();
             var position = new Vector2(5, 0);
@@ -101,8 +101,8 @@ namespace Catopia.GasStation
             frame.Add(NewTextSprite($"'{controller.block.CubeGrid.DisplayName}'", position + positionX150, Color.Cyan));
             position.Y += LineSpaceing;
 
-            frame.Add(NewTextSprite("H2 Available:", position));
-            var availableKL = (int)controller.gasPump.SourceH2Tanks.TotalAvailable / 1000;
+            frame.Add(NewTextSprite("Gas Available:", position));
+            var availableKL = (int)controller.energyPump.SourceEnergy.TotalAvailable / 1000;
             frame.Add(NewTextSprite($"{availableKL}KL", position + positionX150, availableKL > 0 ? Color.Green : Color.Red));
             position.Y += LineSpaceing;
 

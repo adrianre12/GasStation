@@ -1,4 +1,4 @@
-﻿using Sandbox.Common.ObjectBuilders;
+﻿using Catopia.GasStation.Pump;
 using Sandbox.Game;
 using Sandbox.ModAPI;
 using Sandbox.ModAPI.Interfaces;
@@ -17,15 +17,14 @@ using VRageMath;
 
 namespace Catopia.GasStation
 {
-    [MyEntityComponentDescriptor(typeof(MyObjectBuilder_TextPanel), false, new[] { "GasStationController" })]
-    public class ControllerBlock : MyGameLogicComponent
+    public abstract class ControllerBlockBase : MyGameLogicComponent
     {
         private const string BUTTON_EMISSIVE_NAME = "Emissive1";
         private const int DEFAULT_BOOT_STEPS = 2;
         private const int DEFAULT_SLEEP_COUNT = 375; //10 mins
 
         internal IMyTextPanel block;
-        internal GasPump gasPump;
+        internal EnergyPumpBase energyPump;
         internal MySync<bool, SyncDirection.BothWays> enableTransfer;
         internal MySync<bool, SyncDirection.FromServer> enableTransferButton;
         internal MySync<bool, SyncDirection.BothWays> sleepWake;
@@ -34,7 +33,7 @@ namespace Catopia.GasStation
         private IMyShipConnector tradeConnector;
         private MyInventory tradeConnectorInventory;
         private MyInventory cashSourceInventory;
-        private IMyCubeGrid stationCubeGrid;
+        protected IMyCubeGrid stationCubeGrid;
         private DockedStateEnum dockedState = DockedStateEnum.Unknown;
         internal string dockedShipName;
         private int bootSteps = DEFAULT_BOOT_STEPS;
@@ -51,7 +50,7 @@ namespace Catopia.GasStation
 
         internal Config Settings = new Config();
         private string prevCDRef;
-        private Screen0 screen0;
+        internal ScreenGas screen0;
 
         private enum DockedStateEnum
         {
@@ -101,12 +100,6 @@ namespace Catopia.GasStation
                 return;
 
             stationCubeGrid = block.CubeGrid;
-            gasPump = new GasPump(stationCubeGrid);
-
-            block.ContentType = VRage.Game.GUI.TextPanel.ContentType.TEXT_AND_IMAGE;
-            block.WriteText(".");
-            block.Font = "Debug";
-            block.FontSize = 0.85f;
 
             Settings.LoadConfigFromCD(block);
 
@@ -115,9 +108,11 @@ namespace Catopia.GasStation
             NeedsUpdate |= MyEntityUpdateEnum.EACH_100TH_FRAME;
             block.CubeGrid.OnBlockRemoved += CubeGrid_OnBlockRemoved;
             sleepWake.ValueChanged += SleepWake_ValueChanged;
-            screen0 = new Screen0();
-            screen0.Init((IMyTextSurfaceProvider)block, 0);
+
+            ControllerSetup();
         }
+
+        protected abstract void ControllerSetup();
 
         private void SleepWake_ValueChanged(MySync<bool, SyncDirection.BothWays> obj)
         {
@@ -164,7 +159,7 @@ namespace Catopia.GasStation
                 return;
             }
 
-            if (gasPump.TargetTanksMarkedForClose()) //cant detect grid change ove trade connector
+            if (energyPump.TargetHolderssMarkedForClose()) //cant detect grid change ove trade connector
             {
                 Reset();
                 screen0.ScreenText("Ship Tank Removed");
@@ -196,15 +191,15 @@ namespace Catopia.GasStation
                 return;
             }
 
-            if (gasPump.SorurceTanksCount == 0)
+            if (energyPump.SorurceHoldersCount == 0)
             {
-                if (!gasPump.TryFindSourceTanks(tradeConnector, Settings.GasPumpIdentifier))
+                if (!energyPump.TryFindSources(tradeConnector, Settings.GasPumpIdentifier))
                 {
                     screen0.ScreenText($"No source tanks found with identifier: {Settings.GasPumpIdentifier}");
                     enableTransfer.Value = false;
                     return;
                 }
-                screen0.ScreenText($"Source Tanks found: {gasPump.SorurceTanksCount}");
+                screen0.ScreenText($"Source Tanks found: {energyPump.SorurceHoldersCount}");
                 return;
             }
 
@@ -217,14 +212,14 @@ namespace Catopia.GasStation
                     case DockedStateEnum.Docked:
                         {
 
-                            if (gasPump.TargetTanksCount == 0)
+                            if (energyPump.TargetHoldersCount == 0)
                             {
-                                if (!gasPump.TryFindTargetTanks(tradeConnector, out dockedShipName))
+                                if (!energyPump.TryFindTargets(tradeConnector, out dockedShipName))
                                 {
                                     screen0.AddText($"No target tanks found on ship");
                                 }
                                 screen0.AddText($"Docked Ship: '{dockedShipName}'");
-                                screen0.ScreenText($"Ship Tanks found: {gasPump.TargetTanksCount}");
+                                screen0.ScreenText($"Ship Tanks found: {energyPump.TargetHoldersCount}");
                             }
 
                             break;
@@ -233,7 +228,7 @@ namespace Catopia.GasStation
                         {
                             dockedShipName = null;
                             screen0.ScreenText($"No Ship Docked");
-                            gasPump.TargetTanksReset();
+                            energyPump.TargetHolderssReset();
                             enableTransfer.Value = false;
                             break;
                         }
@@ -242,8 +237,8 @@ namespace Catopia.GasStation
             }
 
             var cashSC = (int)cashSourceInventory.GetItemAmount(SCDefId);
-            var freeSpaceKL = (int)gasPump.TargetH2Tanks.TotalFree / 1000;
-            int minGasKL = (int)Math.Round(Math.Min(gasPump.TargetH2Tanks.TotalFree, gasPump.SourceH2Tanks.TotalAvailable) / 1000);
+            var freeSpaceKL = (int)energyPump.TargetEnergy.TotalFree / 1000;
+            int minGasKL = (int)Math.Round(Math.Min(energyPump.TargetEnergy.TotalFree, energyPump.SourceEnergy.TotalAvailable) / 1000);
             var maxFillKL = Math.Min(minGasKL, cashSC / Settings.PricePerKL);
             //Log.Msg($"Controller minGasKL={minGasKL} maxFillKL ={maxFillKL} freeSpaceKL ={freeSpaceKL} TotalAvailable={gasPump.SourceH2Tanks.TotalAvailable / 1000} Afford={cashSC / Settings.PricePerKL}");
             switch (dockedState)
@@ -268,9 +263,9 @@ namespace Catopia.GasStation
             {
                 sleepMode = false;
                 int transferedKL;
-                switch (gasPump.BatchTransfer(maxFillKL, out transferedKL))
+                switch (energyPump.BatchTransfer(maxFillKL, out transferedKL))
                 {
-                    case GasPump.TransferResult.Continue:
+                    case EnergyPumpBase.TransferResult.Continue:
                         {
                             break;
                         }
@@ -309,7 +304,7 @@ namespace Catopia.GasStation
                 screen0.ScreenText("Trade Connector Removed");
                 return;
             }
-            if (gasPump != null && gasPump.SourceTanksMarkedForClose())
+            if (energyPump != null && energyPump.SourceHoldersMarkedForClose())
             {
                 Reset();
                 screen0.ScreenText("Gas Tank Removed");
@@ -391,7 +386,7 @@ namespace Catopia.GasStation
         {
             tradeConnector = null;
             tradeConnectorInventory = null;
-            gasPump = new GasPump(stationCubeGrid);
+            energyPump = new HydrogenPump(stationCubeGrid);
             enableTransfer.Value = false;
             enableTransferButton.Value = false;
             dockedState = DockedStateEnum.Unknown;

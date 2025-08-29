@@ -1,26 +1,23 @@
-﻿using Sandbox.Definitions;
+﻿using Catopia.GasStation.Energy;
 using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
-using VRage.Game;
 using VRage.Game.ModAPI;
 
-namespace Catopia.GasStation
+namespace Catopia.GasStation.Pump
 {
-    internal class GasPump
+    internal abstract class EnergyPumpBase
     {
-        private GasTanks targetH2Tanks = new GasTanks();
-        internal GasTanks TargetH2Tanks { get { return targetH2Tanks; } }
-        private GasTanks sourceH2Tanks = new GasTanks();
-        internal GasTanks SourceH2Tanks { get { return sourceH2Tanks; } }
+        internal EnergyHolders targetEnergy = new EnergyHolders();
+        public EnergyHolders TargetEnergy { get { return targetEnergy; } }
+        internal EnergyHolders sourceEnergy = new EnergyHolders();
+        public EnergyHolders SourceEnergy { get { return sourceEnergy; } }
 
-        private static MyDefinitionId H2DefId = MyDefinitionId.Parse("MyObjectBuilder_GasProperties/Hydrogen");
+        internal int SorurceHoldersCount { get { return sourceEnergy.Count; } }
+        internal int TargetHoldersCount { get { return targetEnergy.Count; } }
 
-        internal int SorurceTanksCount { get { return sourceH2Tanks.Count; } }
-        internal int TargetTanksCount { get { return targetH2Tanks.Count; } }
-
-        private IMyCubeGrid stationCubeGrid;
+        private MyCubeGrid stationCubeGrid;
 
         public enum TransferResult
         {
@@ -31,24 +28,24 @@ namespace Catopia.GasStation
             Error
         }
 
-        public GasPump(IMyCubeGrid cubeGrid)
+        public EnergyPumpBase(IMyCubeGrid cubeGrid)
         {
-            stationCubeGrid = cubeGrid;
+            stationCubeGrid = cubeGrid as MyCubeGrid;
         }
 
-        public void TargetTanksReset()
+        public void TargetHolderssReset()
         {
-            targetH2Tanks.Clear();
+            targetEnergy.Clear();
         }
 
-        public bool SourceTanksMarkedForClose()
+        public bool SourceHoldersMarkedForClose()
         {
-            return sourceH2Tanks.TanksMarkedForClose();
+            return sourceEnergy.HoldersMarkedForClose();
         }
 
-        public bool TargetTanksMarkedForClose()
+        public bool TargetHolderssMarkedForClose()
         {
-            return targetH2Tanks.TanksMarkedForClose();
+            return targetEnergy.HoldersMarkedForClose();
         }
 
         public TransferResult BatchTransfer(int transferRequestKL, out int transferedKL)
@@ -94,12 +91,12 @@ namespace Catopia.GasStation
             transferedKL = 0;
             //Log.Msg($"transferRequestKL={transferRequestKL}");
             //check source gas available 
-            long transferL = (long)Math.Round(Math.Min(transferRequestKL * 1000, sourceH2Tanks.TotalAvailable));
+            long transferL = (long)Math.Round(Math.Min(transferRequestKL * 1000, sourceEnergy.TotalAvailable));
             if (transferL == 0)
                 return TransferResult.EmptySource;
             //Log.Msg($"transferL={transferL} after source tank check");
             //check target tank space available
-            transferL = (long)Math.Round(Math.Min(transferL, targetH2Tanks.TotalFree));
+            transferL = (long)Math.Round(Math.Min(transferL, targetEnergy.TotalFree));
             //Log.Msg($"transferL={transferL} after target tank check");
 
             if (transferL == 0)
@@ -107,10 +104,10 @@ namespace Catopia.GasStation
 
 
             // add gas to target
-            long amountFilled = targetH2Tanks.Fill(transferL);
+            long amountFilled = targetEnergy.Fill(transferL);
 
             //remove gas from source
-            double amountDrained = sourceH2Tanks.Drain(amountFilled);
+            double amountDrained = sourceEnergy.Drain(amountFilled);
             //Log.Msg($"transferL={transferL} amountFilled={amountFilled} amountDrained=={amountDrained}");
 
             transferedKL = (int)amountFilled / 1000;
@@ -123,10 +120,10 @@ namespace Catopia.GasStation
             return TransferResult.Continue;
         }
 
-        internal bool TryFindTargetTanks(IMyShipConnector tradeConnector, out string shipName)
+        internal bool TryFindTargets(IMyShipConnector tradeConnector, out string shipName)
         {
             shipName = null; ;
-            targetH2Tanks.Clear();
+            targetEnergy.Clear();
             if (tradeConnector == null || !tradeConnector.IsConnected)
                 return false;
 
@@ -151,42 +148,33 @@ namespace Catopia.GasStation
                 {
                     if (!targetConector.GetInventory().IsConnectedTo(fatBlock.GetInventory()))
                         continue;
-                    IMyGasTank gasTank;
-                    if ((gasTank = fatBlock as IMyGasTank) != null && gasTank.IsWorking)
-                    {
-                        var sb = gasTank.SlimBlock.BlockDefinition as MyGasTankDefinition;
-                        if (sb.StoredGasId == H2DefId)
-                            targetH2Tanks.Add(gasTank);
-                    }
-
+                    CheckAndAddHolder(fatBlock, true, ref targetEnergy);
                 }
 
             }
             //Log.Msg($"targetTanks found = {targetH2Tanks.Count}");
             shipName = connectedGrid.DisplayName;
-            return targetH2Tanks.Count > 0;
+            return targetEnergy.Count > 0;
         }
 
-        internal bool TryFindSourceTanks(IMyShipConnector tradeConnector, string gasPumpIdentifier)
+        protected abstract void CheckAndAddHolder(MyCubeBlock fatBlock, bool isTarget, ref EnergyHolders energyHolders);
+
+        internal bool TryFindSources(IMyShipConnector tradeConnector, string gasPumpIdentifier)
         {
-            sourceH2Tanks.Clear();
+            sourceEnergy.Clear();
             if (stationCubeGrid == null)
                 return false;
 
-            foreach (var gasTank in stationCubeGrid.GetFatBlocks<Sandbox.ModAPI.IMyGasTank>())
+            foreach (var fatBlock in stationCubeGrid.GetFatBlocks())
             {
-                if (!tradeConnector.GetInventory().IsConnectedTo(gasTank.GetInventory()))
+                //Log.Msg($">>> fatblock displayNameText={fatBlock.DisplayNameText}");
+                if (fatBlock.DisplayNameText.Contains(gasPumpIdentifier) && !tradeConnector.GetInventory().IsConnectedTo(fatBlock.GetInventory()))
                     continue;
-                //Log.Msg($">>> grid displayNameText={gasTank.DisplayNameText} customName={gasTank.CustomName}");
-                if (gasTank.CustomName.Contains(gasPumpIdentifier) && gasTank.IsWorking && !gasTank.Stockpile)
-                {
-                    var sb = gasTank.SlimBlock.BlockDefinition as MyGasTankDefinition;
-                    if (sb.StoredGasId == H2DefId)
-                        sourceH2Tanks.Add(gasTank);
-                }
+
+                CheckAndAddHolder(fatBlock, false, ref sourceEnergy);
             }
-            //Log.Msg($"sourceTanks found = {sourceH2Tanks.Count}");
-            return sourceH2Tanks.Count > 0;
+            //Log.Msg($"sourceHolders found = {sourceEnergy.Count}");
+            return sourceEnergy.Count > 0;
         }
 
     }

@@ -2,7 +2,7 @@
 using System;
 using System.Text;
 using VRage.Game.ModAPI.Ingame.Utilities;
-using static Catopia.GasStation.ControllerBlock;
+using static Catopia.GasStation.ControllerBlockBase;
 
 namespace Catopia.GasStation
 {
