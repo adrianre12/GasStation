@@ -67,7 +67,7 @@ namespace Catopia.GasStation
             frame.Add(NewTextSprite($"SC {cashSC}", position + positionX150, maxPrice > cashSC ? Color.Red : Color.Green));
             position.Y += LineSpaceing;
 
-            frame.Add(NewTextSprite("Max Fill:", position));
+            frame.Add(NewTextSprite("Transfer:", position));
             frame.Add(NewTextSprite($"{maxFillK}{unitName}", position + positionX150, Color.Yellow));
             position.Y += LineSpaceing;
 

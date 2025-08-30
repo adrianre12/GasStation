@@ -53,11 +53,11 @@ namespace Catopia.GasStation.Pump
             return targetEnergy.HoldersMarkedForClose();
         }
 
-        public TransferResult BatchTransfer(int transferRequestKL, out int transferedKL)
+        public TransferResult BatchTransfer(int transferRequestK, out int transferedK)
         {
-            transferedKL = 0;
-            TransferResult transferResult = TransferGas(transferRequestKL, out transferedKL);
-            //Log.Msg($"TransferGas transferRequestKL={transferRequestKL} transferResult ={transferResult.ToString()} transferedKL={transferedKL}");
+            transferedK = 0;
+            TransferResult transferResult = TransferEnergy(transferRequestK, out transferedK);
+            //Log.Msg($"TransferGas transferRequestK={transferRequestK} transferResult ={transferResult.ToString()} transferedKL={transferedKL}");
 
             switch (transferResult)
             {
@@ -91,31 +91,29 @@ namespace Catopia.GasStation.Pump
             return transferResult;
         }
 
-        private TransferResult TransferGas(long transferRequestKL, out int transferedKL)
+        private TransferResult TransferEnergy(long transferRequestK, out int transferedK)
         {
-            transferedKL = 0;
-            //Log.Msg($"transferRequestKL={transferRequestKL}");
-            //check source gas available 
-            long transferL = (long)Math.Round(Math.Min(transferRequestKL * 1000, sourceEnergy.TotalAvailable));
+            transferedK = 0;
+            //Log.Msg($"transferRequestK={transferRequestK}");
+            //check source available 
+            long transferL = (long)Math.Round(Math.Min(transferRequestK * 1000, sourceEnergy.TotalAvailable));
             if (transferL == 0)
                 return TransferResult.EmptySource;
-            //Log.Msg($"transferL={transferL} after source tank check");
+
             //check target tank space available
             transferL = (long)Math.Round(Math.Min(transferL, targetEnergy.TotalFree));
-            //Log.Msg($"transferL={transferL} after target tank check");
 
             if (transferL == 0)
                 return TransferResult.FullTarget;
 
-
-            // add gas to target
+            // add to target
             long amountFilled = targetEnergy.Fill(transferL);
 
-            //remove gas from source
+            //remove from source
             double amountDrained = sourceEnergy.Drain(amountFilled);
             //Log.Msg($"transferL={transferL} amountFilled={amountFilled} amountDrained=={amountDrained}");
 
-            transferedKL = (int)amountFilled / 1000;
+            transferedK = (int)amountFilled / 1000;
             if (Math.Abs(amountDrained - amountFilled) > 100) //acount for rounding errors
             {
                 Log.Msg($"Amount drained != filled [ {amountDrained} != {amountFilled} ]");

@@ -21,23 +21,22 @@ namespace Catopia.GasStation.Energy
 
         public double Free { get { return Capacity - Available; } }
 
-        public double FilledRatio { get { return Available / Capacity; } }
+        public double FilledRatio { get { return battery.StoredPowerRatio; } }
 
         public double Fill(long Amount)
         {
             if (Free == 0)
                 return 0;
-
             var amount = Math.Min(Amount, maxChargeDeltaRatio * Capacity);
 
             if (amount > Free)
             {
                 var free = Free;
-                battery.CurrentStoredPower = battery.MaxStoredPower;
+                battery.CurrentStoredPower = battery.BlockDefinition.RechargeMultiplier * battery.MaxStoredPower;
                 return free;
             }
 
-            battery.CurrentStoredPower += (float)amount / 1000000;
+            battery.CurrentStoredPower += battery.BlockDefinition.RechargeMultiplier * (float)amount / 1000000;
             return amount;
         }
 
