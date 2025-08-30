@@ -440,24 +440,6 @@ namespace Catopia.GasStation
 
         // On client
 
-        protected void MoveNamePanel(string subpartName, float x)
-        {
-            try
-            {
-                MyEntitySubpart subpart;
-                if (Entity.TryGetSubpart(subpartName, out subpart))
-                {
-                    var pos = subpart.PositionComp.LocalMatrixRef;
-                    pos.Translation = pos.Translation + new Vector3(x, 0, 0);
-                    subpart.PositionComp.SetLocalMatrix(ref pos);
-                }
-            }
-            catch (Exception e)
-            {
-                Log.Msg(e.ToString());
-            }
-        }
-
         protected void NamePanel(string subpartName, bool visible)
         {
             try
