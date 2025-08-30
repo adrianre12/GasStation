@@ -97,7 +97,6 @@ namespace Catopia.GasStation
                 CashSourceInventory_ContentsChanged(cashSourceInventory);
                 enableTransfer.ValueChanged += EnableTransfer_ValueChanged;
                 enableTransferButton.ValueChanged += EnableTransferButton_ValueChanged;
-                //MoveNamePanel("NamePanelBlank", -0.03f);
                 NamePanel("NamePanelBlank", false);
                 NamePanel("NamePanelH2", false);
                 NamePanel("NamePanelO2", false);
@@ -106,12 +105,13 @@ namespace Catopia.GasStation
                 ControllerSetupClient();
             }
 
+            Settings.LoadConfigFromCD(block);
+
+
             if (!MyAPIGateway.Session.IsServer)
                 return;
 
             stationCubeGrid = block.CubeGrid;
-
-            Settings.LoadConfigFromCD(block);
 
             SCobjectBuilder = (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializer.CreateNewObject(SCDefId);
 
@@ -248,16 +248,16 @@ namespace Catopia.GasStation
             }
 
             var cashSC = (int)cashSourceInventory.GetItemAmount(SCDefId);
-            var freeSpaceKL = (int)energyPump.TargetEnergy.TotalFree / 1000;
-            int minGasKL = (int)Math.Round(Math.Min(energyPump.TargetEnergy.TotalFree, energyPump.SourceEnergy.TotalAvailable) / 1000);
-            var maxFillKL = Math.Min(minGasKL, cashSC / Settings.PricePerKL);
-            //Log.Msg($"Controller minGasKL={minGasKL} maxFillKL ={maxFillKL} freeSpaceKL ={freeSpaceKL} TotalAvailable={gasPump.SourceH2Tanks.TotalAvailable / 1000} Afford={cashSC / Settings.PricePerKL}");
+            var freeSpaceK = (int)energyPump.TargetEnergy.TotalFree / 1000;
+            int minGasK = (int)Math.Round(Math.Min(energyPump.TargetEnergy.TotalFree, energyPump.SourceEnergy.TotalAvailable) / 1000);
+            var maxFillK = Math.Min(minGasK, cashSC / Settings.PricePerK);
+            //Log.Msg($"Controller minGasK={minGasK} maxFillK ={maxFillK} freeSpaceK ={freeSpaceK} TotalAvailable={gasPump.SourceH2Tanks.TotalAvailable / 1000} Afford={cashSC / Settings.PricePerK}");
             switch (dockedState)
             {
                 case DockedStateEnum.Docked:
                     {
-                        screen0.ScreenDocked(cashSC, freeSpaceKL, (int)maxFillKL, this);
-                        enableTransferButton.Value = maxFillKL > 0;
+                        screen0.ScreenDocked(cashSC, freeSpaceK, (int)maxFillK, this);
+                        enableTransferButton.Value = maxFillK > 0;
                         break;
                     }
                 case DockedStateEnum.UnDocked:
@@ -273,8 +273,8 @@ namespace Catopia.GasStation
             if (enableTransfer)
             {
                 sleepMode = false;
-                int transferedKL;
-                switch (energyPump.BatchTransfer(maxFillKL, out transferedKL))
+                int transferedK;
+                switch (energyPump.BatchTransfer(maxFillK, out transferedK))
                 {
                     case EnergyPumpBase.TransferResult.Continue:
                         {
@@ -287,7 +287,7 @@ namespace Catopia.GasStation
                         }
                 }
 
-                if (!TryTransferCash(transferedKL))
+                if (!TryTransferCash(transferedK))
                 {
                     Log.Msg("Cash transfer failed");
                     enableTransfer.Value = false;
@@ -327,7 +327,7 @@ namespace Catopia.GasStation
             if (transferedKL == 0)
                 return true;
 
-            int amount = transferedKL * Settings.PricePerKL;
+            int amount = transferedKL * Settings.PricePerK;
 
             if (cashSourceInventory.ItemCount == 0)
                 return false;

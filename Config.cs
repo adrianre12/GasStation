@@ -10,9 +10,9 @@ namespace Catopia.GasStation
     {
         private MyIni myIni = new MyIni();
 
-        private const string KeyPricePerKL = "PricePerKL";
-        public const int DefaultPricePerKL = 2507;
-        public int PricePerKL = DefaultPricePerKL;
+        private const string KeyPricePerK = "PricePerK";
+        public const int DefaultPricePerK = 1;
+        public int PricePerK = DefaultPricePerK;
 
         private const string KeyGasPumpIdentifier = "Identifier";
         public const string DefaultGasPumpIdentifier = "[GS1]";
@@ -29,7 +29,7 @@ namespace Catopia.GasStation
             {
                 Log.Msg("Error in CD, creating a new config.");
                 GasPumpIdentifier = DefaultGasPumpIdentifier;
-                PricePerKL = DefaultPricePerKL;
+                PricePerK = DefaultPricePerK;
                 CreditMethod = DefaultCreditMethod;
 
                 SaveConfigToCD(block);
@@ -43,9 +43,11 @@ namespace Catopia.GasStation
             myIni.Clear();
             var sb = new StringBuilder();
             sb.AppendLine("GasStation Settings");
-            sb.AppendLine($"{KeyGasPumpIdentifier}: Used to identify connector and H2 tanks.");
+            sb.AppendLine($"{KeyGasPumpIdentifier}: Used to identify connector, tanks and batteries.");
             sb.AppendLine("   Each GasStation on this grid needs to be unique [GS1] [GS2] etc.");
-            sb.AppendLine($"{KeyPricePerKL}: Default price based on Ice 50SC/Kg and H2 yield of 19.95L/Kg.");
+            sb.AppendLine("   Terminals of differnet types can share the same identifier");
+            sb.AppendLine($"{KeyPricePerK}: For Gas this is KL (1000L) Power is KWh (1000Wh)");
+            sb.AppendLine("   Example H2 2705 based on Ice 50SC/Kg and H2 yield of 19.95L/Kg.");
             sb.AppendLine($"{KeyCreditMethod}: Where to put earned Space Credits.");
             sb.AppendLine($"   {CreditMethodEnum.TradeConnector.ToString()}: Put Space Credits in the trade connector inventory.");
             sb.AppendLine($"   {CreditMethodEnum.GridOwner.ToString()}: Put Space Credits in the grid owners account.");
@@ -54,11 +56,12 @@ namespace Catopia.GasStation
             myIni.SetSectionComment("Settings", sb.ToString());
 
             myIni.Set("Settings", KeyGasPumpIdentifier, GasPumpIdentifier);
-            myIni.Set("Settings", KeyPricePerKL, PricePerKL);
+            myIni.Set("Settings", KeyPricePerK, PricePerK);
             myIni.Set("Settings", KeyCreditMethod, CreditMethod.ToString());
 
             myIni.Invalidate();
             block.CustomData = myIni.ToString();
+
         }
 
         private bool ParseConfigFromCD(IMyTerminalBlock block)
@@ -72,7 +75,7 @@ namespace Catopia.GasStation
                 if (!myIni.Get("Settings", KeyGasPumpIdentifier).TryGetString(out GasPumpIdentifier))
                     return false;
 
-                if (!myIni.Get("Settings", KeyPricePerKL).TryGetInt32(out PricePerKL))
+                if (!myIni.Get("Settings", KeyPricePerK).TryGetInt32(out PricePerK))
                     return false;
 
                 string tmp;

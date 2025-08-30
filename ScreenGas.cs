@@ -39,7 +39,7 @@ namespace Catopia.GasStation
             position.Y += LineSpaceing;
 
             frame.Add(NewTextSprite("Price SC/KL:", position));
-            frame.Add(NewTextSprite($"SC {controller.Settings.PricePerKL}", position + positionX150));
+            frame.Add(NewTextSprite($"SC {controller.Settings.PricePerK}", position + positionX150));
             position.Y += 2 * LineSpaceing;
 
             frame.Add(NewTextSprite("Ship Name:", position));
@@ -52,7 +52,7 @@ namespace Catopia.GasStation
             position.Y += LineSpaceing;
 
             frame.Add(NewTextSprite("Max Price:", position));
-            var maxPrice = freeSpaceKL * controller.Settings.PricePerKL;
+            var maxPrice = freeSpaceKL * controller.Settings.PricePerK;
             frame.Add(NewTextSprite($"SC {maxPrice}", position + positionX150));
             position.Y += LineSpaceing;
 
@@ -65,7 +65,7 @@ namespace Catopia.GasStation
             position.Y += LineSpaceing;
 
             frame.Add(NewTextSprite("Total Price:", position));
-            frame.Add(NewTextSprite($"SC {maxFillKL * controller.Settings.PricePerKL}", position + positionX150, Color.Yellow));
+            frame.Add(NewTextSprite($"SC {maxFillKL * controller.Settings.PricePerK}", position + positionX150, Color.Yellow));
             position.Y += 2 * LineSpaceing;
 
             /*            Func<int, Vector2> ph = (x) => { return new Vector2(position.X + x, position.Y); };
@@ -107,7 +107,7 @@ namespace Catopia.GasStation
             position.Y += LineSpaceing;
 
             frame.Add(NewTextSprite("Price SC/KL:", position));
-            frame.Add(NewTextSprite($"SC {controller.Settings.PricePerKL}", position + positionX150));
+            frame.Add(NewTextSprite($"SC {controller.Settings.PricePerK}", position + positionX150));
             position.Y += LineSpaceing;
 
             frame.Add(NewTextSprite("SC Inserted:", position));
