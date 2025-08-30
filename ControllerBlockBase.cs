@@ -94,7 +94,7 @@ namespace Catopia.GasStation
                 CashSourceInventory_ContentsChanged(cashSourceInventory);
                 enableTransfer.ValueChanged += EnableTransfer_ValueChanged;
                 enableTransferButton.ValueChanged += EnableTransferButton_ValueChanged;
-                NamePanel("NamePanelBlank", false);
+                MoveNamePanel("NamePanelBlank", -0.02f);
                 NamePanel("NamePanelH2", false);
                 NamePanel("NamePanelO2", false);
                 NamePanel("NamePanelPower", false);
@@ -436,12 +436,30 @@ namespace Catopia.GasStation
 
         // On client
 
+        protected void MoveNamePanel(string subpartName, float x)
+        {
+            try
+            {
+                MyEntitySubpart subpart;
+                if (Entity.TryGetSubpart(subpartName, out subpart))
+                {
+                    var pos = subpart.PositionComp.LocalMatrixRef;
+                    pos.Translation = pos.Translation + new Vector3(x, 0, 0);
+                    subpart.PositionComp.SetLocalMatrix(ref pos);
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Msg(e.ToString());
+            }
+        }
+
         protected void NamePanel(string subpartName, bool visible)
         {
             try
             {
                 MyEntitySubpart subpart;
-                if (Entity.TryGetSubpart(subpartName, out subpart)) // subpart does not exist when block is in build stage
+                if (Entity.TryGetSubpart(subpartName, out subpart))
                 {
                     subpart.Render.Visible = visible;
                 }

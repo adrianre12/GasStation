@@ -21,7 +21,7 @@ namespace Catopia.GasStation.Pump
             if ((gasTank = fatBlock as IMyGasTank) != null && gasTank.IsWorking && (isTarget || !gasTank.Stockpile))
             {
                 var sb = gasTank.SlimBlock.BlockDefinition as MyGasTankDefinition;
-                Log.Msg($"Name={gasTank.DisplayNameText} {sb.StoredGasId.ToString()}");
+                //Log.Msg($"Name={gasTank.DisplayNameText} {sb.StoredGasId.ToString()}");
                 if (sb.StoredGasId == O2DefId)
                     energyHolders.Add(new EnergyGas(gasTank));
             }
