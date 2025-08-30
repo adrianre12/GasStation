@@ -36,13 +36,13 @@ namespace Catopia.GasStation.Energy
                 return free;
             }
 
-            battery.CurrentStoredPower += battery.BlockDefinition.RechargeMultiplier * (float)amount / 1000000;
+            battery.CurrentStoredPower += (float)(battery.BlockDefinition.RechargeMultiplier * amount / 1000000.0);
             return amount;
         }
 
         public double Drain(long Amount)
         {
-            if (Free == 0)
+            if (Available == 0)
                 return 0;
 
             if (Amount > Available)
@@ -51,8 +51,7 @@ namespace Catopia.GasStation.Energy
                 battery.CurrentStoredPower = 0;
                 return available;
             }
-
-            battery.CurrentStoredPower -= Amount / 1000000;
+            battery.CurrentStoredPower = (float)(battery.CurrentStoredPower - Amount / 1000000.0);
             return Amount;
         }
 
