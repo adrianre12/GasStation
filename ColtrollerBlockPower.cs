@@ -8,6 +8,7 @@ namespace Catopia.GasStation
     [MyEntityComponentDescriptor(typeof(MyObjectBuilder_TextPanel), false, new[] { "GasStationControllerPower" })]
     public class ControllerBlockPower : ControllerBlockBase
     {
+
         protected override void ControllerSetupClient()
         {
             NamePanel("NamePanelPower", true);
@@ -15,9 +16,9 @@ namespace Catopia.GasStation
 
         protected override void ControllerSetupServer()
         {
-            energyPump = new HydrogenPump(stationCubeGrid);
-            screen0 = new ScreenGas();
-            screen0.Init((IMyTextSurfaceProvider)block, 0);
+            holderName = "batteries";
+            energyPump = new PowerPump(stationCubeGrid);
+            screen0 = new ScreenEnergy((IMyTextSurfaceProvider)block, 0, "Power", "KWh", "battery", "batteries");
         }
     }
 }

@@ -18,34 +18,14 @@ namespace Catopia.GasStation.Energy
             this.tank = tank;
         }
 
-        /// <summary>
-        /// Total capacity of the tank
-        /// </summary>
         public double Capacity { get { return (double)tank.Capacity; } }
 
-        /// <summary>
-        /// Available gas in tank
-        /// </summary>
         public double Available { get { return (tank.Capacity * tank.FilledRatio); } }
 
-        /// <summary>
-        /// Free capacity in the tank
-        /// </summary>
         public double Free { get { return (tank.Capacity * (1 - tank.FilledRatio)); } }
 
-        public double FilledRatio
-        {
-            get
-            {
-                return tank.FilledRatio;
-            }
-        }
+        public double FilledRatio { get { return tank.FilledRatio; } }
 
-        /// <summary>
-        /// Add gas to tank, rate limited
-        /// </summary>
-        /// <param name="Amount"></param>
-        /// <returns>the amount gas added</returns>
         public double Fill(long Amount)
         {
             if (tank.FilledRatio == 1)
@@ -65,11 +45,6 @@ namespace Catopia.GasStation.Energy
             return ratioDelta * tank.Capacity;
         }
 
-        /// <summary>
-        /// Remove gas from tank, rate unlimited
-        /// </summary>
-        /// <param name="Amount"></param>
-        /// <returns>the amount of gas removed</returns>
         public double Drain(long Amount)
         {
             if (tank.FilledRatio == 0)
@@ -88,10 +63,6 @@ namespace Catopia.GasStation.Energy
 
         }
 
-        public bool IsMarkedForClose
-        {
-            get { return tank.MarkedForClose; }
-        }
-
+        public bool IsMarkedForClose { get { return tank.MarkedForClose; } }
     }
 }

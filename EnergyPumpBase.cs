@@ -151,9 +151,7 @@ namespace Catopia.GasStation.Pump
             {
                 foreach (var fatBlock in myCubeGrid.GetFatBlocks())
                 {
-                    if (!targetConector.GetInventory().IsConnectedTo(fatBlock.GetInventory()))
-                        continue;
-                    CheckAndAddHolder(fatBlock, true, ref targetEnergy);
+                    CheckAndAddHolder(fatBlock, true, targetConector.GetInventory().IsConnectedTo(fatBlock.GetInventory()), ref targetEnergy);
                 }
 
             }
@@ -162,7 +160,7 @@ namespace Catopia.GasStation.Pump
             return targetEnergy.Count > 0;
         }
 
-        protected abstract void CheckAndAddHolder(MyCubeBlock fatBlock, bool isTarget, ref EnergyHolders energyHolders);
+        protected abstract void CheckAndAddHolder(MyCubeBlock fatBlock, bool isTarget, bool isConnected, ref EnergyHolders energyHolders);
 
         public bool TryFindSources(IMyShipConnector tradeConnector, string gasPumpIdentifier)
         {
@@ -173,10 +171,10 @@ namespace Catopia.GasStation.Pump
             foreach (var fatBlock in stationCubeGrid.GetFatBlocks())
             {
                 //Log.Msg($">>> fatblock displayNameText={fatBlock.DisplayNameText}");
-                if (fatBlock.DisplayNameText.Contains(gasPumpIdentifier) && !tradeConnector.GetInventory().IsConnectedTo(fatBlock.GetInventory()))
+                if (!fatBlock.DisplayNameText.Contains(gasPumpIdentifier))
                     continue;
 
-                CheckAndAddHolder(fatBlock, false, ref sourceEnergy);
+                CheckAndAddHolder(fatBlock, false, tradeConnector.GetInventory().IsConnectedTo(fatBlock.GetInventory()), ref sourceEnergy);
             }
             //Log.Msg($"sourceHolders found = {sourceEnergy.Count}");
             return sourceEnergy.Count > 0;

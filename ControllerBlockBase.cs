@@ -50,7 +50,10 @@ namespace Catopia.GasStation
 
         internal Config Settings = new Config();
         private string prevCDRef;
-        internal ScreenGas screen0;
+        internal ScreenEnergy screen0;
+
+        protected string holderName;
+
 
         private enum DockedStateEnum
         {
@@ -94,7 +97,8 @@ namespace Catopia.GasStation
                 CashSourceInventory_ContentsChanged(cashSourceInventory);
                 enableTransfer.ValueChanged += EnableTransfer_ValueChanged;
                 enableTransferButton.ValueChanged += EnableTransferButton_ValueChanged;
-                MoveNamePanel("NamePanelBlank", -0.02f);
+                //MoveNamePanel("NamePanelBlank", -0.03f);
+                NamePanel("NamePanelBlank", false);
                 NamePanel("NamePanelH2", false);
                 NamePanel("NamePanelO2", false);
                 NamePanel("NamePanelPower", false);
@@ -202,11 +206,11 @@ namespace Catopia.GasStation
             {
                 if (!energyPump.TryFindSources(tradeConnector, Settings.GasPumpIdentifier))
                 {
-                    screen0.ScreenText($"No source tanks found with identifier: {Settings.GasPumpIdentifier}");
+                    screen0.ScreenText($"No source {holderName} found with identifier: {Settings.GasPumpIdentifier}");
                     enableTransfer.Value = false;
                     return;
                 }
-                screen0.ScreenText($"Source Tanks found: {energyPump.SorurceHoldersCount}");
+                screen0.ScreenText($"Source {holderName} found: {energyPump.SorurceHoldersCount}");
                 return;
             }
 
@@ -223,10 +227,10 @@ namespace Catopia.GasStation
                             {
                                 if (!energyPump.TryFindTargets(tradeConnector, out dockedShipName))
                                 {
-                                    screen0.AddText($"No target tanks found on ship");
+                                    screen0.AddText($"No target {holderName} found on ship");
                                 }
                                 screen0.AddText($"Docked Ship: '{dockedShipName}'");
-                                screen0.ScreenText($"Ship Tanks found: {energyPump.TargetHoldersCount}");
+                                screen0.ScreenText($"Ship {holderName} found: {energyPump.TargetHoldersCount}");
                             }
 
                             break;

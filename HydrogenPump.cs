@@ -15,12 +15,14 @@ namespace Catopia.GasStation.Pump
         {
         }
 
-        protected override void CheckAndAddHolder(MyCubeBlock fatBlock, bool isTarget, ref EnergyHolders energyHolders)
+        protected override void CheckAndAddHolder(MyCubeBlock fatBlock, bool isTarget, bool isConnected, ref EnergyHolders energyHolders)
         {
+            if (!isConnected)
+                return;
+
             IMyGasTank gasTank;
             if ((gasTank = fatBlock as IMyGasTank) != null && gasTank.IsWorking && (isTarget || !gasTank.Stockpile))
             {
-                Log.Msg("Naughty");
                 var sb = gasTank.SlimBlock.BlockDefinition as MyGasTankDefinition;
                 if (sb.StoredGasId == H2DefId)
                     energyHolders.Add(new EnergyGas(gasTank));

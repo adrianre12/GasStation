@@ -15,10 +15,9 @@ namespace Catopia.GasStation
 
         protected override void ControllerSetupServer()
         {
-            Log.Msg("setup o2");
+            holderName = "tanks";
             energyPump = new OxygenPump(stationCubeGrid);
-            screen0 = new ScreenGas();
-            screen0.Init((IMyTextSurfaceProvider)block, 0);
+            screen0 = new ScreenEnergy((IMyTextSurfaceProvider)block, 0, "Gas", "KL", "tank", "tanks");
         }
     }
 }

@@ -19,7 +19,7 @@ namespace Catopia.GasStation
 
         public ScreenBase() { }
 
-        public virtual void Init(IMyTextSurfaceProvider surfaceProvider, int index)
+        protected virtual void Init(IMyTextSurfaceProvider surfaceProvider, int index)
         {
             surface = (IMyTextSurface)surfaceProvider.GetSurface(index);
             viewport = new RectangleF((surface.TextureSize - surface.SurfaceSize) / 2f, surface.SurfaceSize);

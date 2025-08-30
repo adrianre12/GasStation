@@ -6,25 +6,32 @@ using VRageMath;
 
 namespace Catopia.GasStation
 {
-    internal class ScreenGas : ScreenBase
+    internal class ScreenEnergy : ScreenBase
     {
         private List<string> screenText = new List<string>();
-        private bool showCursor;
 
-        internal readonly Color GreenCRT = new Color(51, 255, 0);
+        private readonly Color GreenCRT = new Color(51, 255, 0);
+        private string energyName;
+        private string unitName;
+        private string holderPlural;
+        private string holderSingular;
 
-        protected override void Init(IMyTextSurfaceProvider surfaceProvider, int index)
+        internal ScreenEnergy(IMyTextSurfaceProvider surfaceProvider, int index, string energyName, string unitName, string holderSingular, string holderPlural)
         {
             base.Init(surfaceProvider, index);
             DefaultRotationOrScale = 0.85f;
             BackgroundColor = Color.MidnightBlue;
+            this.energyName = energyName;
+            this.unitName = unitName;
+            this.holderPlural = holderPlural;
+            this.holderSingular = holderSingular;
         }
 
-        internal void ScreenDocked(int cashSC, int freeSpaceKL, int maxFillKL, ControllerBlockBase controller)
+        internal void ScreenDocked(int cashSC, int freeSpaceK, int maxFillK, ControllerBlockBase controller)
         {
             var frame = GetFrame();
             var position = new Vector2(5, 0);
-            var positionX150 = new Vector2(150, 0);
+            var positionX150 = new Vector2(170, 0);
             //Func<int, Vector2> ph = (x) => { return new Vector2(position.X + x, position.Y); };
             //for (int x = 0; x < viewport.Width; x += 50)
             //    frame.Add(NewTextSprite("_", ph(x)));
@@ -33,12 +40,12 @@ namespace Catopia.GasStation
             frame.Add(NewTextSprite($"'{controller.block.CubeGrid.DisplayName}'", position + positionX150, Color.Cyan));
             position.Y += LineSpaceing;
 
-            frame.Add(NewTextSprite("Gas Available:", position));
+            frame.Add(NewTextSprite($"{energyName} Available:", position));
             var availableKL = (int)Math.Round(controller.energyPump.SourceEnergy.TotalAvailable / 100) / 10; //fudge the rounding for display
-            frame.Add(NewTextSprite($"{availableKL}KL", position + positionX150, availableKL > freeSpaceKL ? Color.Green : Color.Red));
+            frame.Add(NewTextSprite($"{availableKL}{unitName}", position + positionX150, availableKL > freeSpaceK ? Color.Green : Color.Red));
             position.Y += LineSpaceing;
 
-            frame.Add(NewTextSprite("Price SC/KL:", position));
+            frame.Add(NewTextSprite($"Price SC/{unitName}:", position));
             frame.Add(NewTextSprite($"SC {controller.Settings.PricePerKL}", position + positionX150));
             position.Y += 2 * LineSpaceing;
 
@@ -47,12 +54,12 @@ namespace Catopia.GasStation
             position.Y += LineSpaceing;
 
             frame.Add(NewTextSprite("Free Space:", position));
-            var tankStr = controller.energyPump.TargetHoldersCount > 0 ? "tanks" : "tank";
-            frame.Add(NewTextSprite($"{freeSpaceKL}KL in {controller.energyPump.TargetHoldersCount} {tankStr}", position + positionX150));
+            var holderStr = controller.energyPump.TargetHoldersCount > 0 ? holderPlural : holderSingular;
+            frame.Add(NewTextSprite($"{freeSpaceK}{unitName} in {controller.energyPump.TargetHoldersCount} {holderStr}", position + positionX150));
             position.Y += LineSpaceing;
 
             frame.Add(NewTextSprite("Max Price:", position));
-            var maxPrice = freeSpaceKL * controller.Settings.PricePerKL;
+            var maxPrice = freeSpaceK * controller.Settings.PricePerKL;
             frame.Add(NewTextSprite($"SC {maxPrice}", position + positionX150));
             position.Y += LineSpaceing;
 
@@ -61,18 +68,18 @@ namespace Catopia.GasStation
             position.Y += LineSpaceing;
 
             frame.Add(NewTextSprite("Max Fill:", position));
-            frame.Add(NewTextSprite($"{maxFillKL}KL", position + positionX150, Color.Yellow));
+            frame.Add(NewTextSprite($"{maxFillK}{unitName}", position + positionX150, Color.Yellow));
             position.Y += LineSpaceing;
 
             frame.Add(NewTextSprite("Total Price:", position));
-            frame.Add(NewTextSprite($"SC {maxFillKL * controller.Settings.PricePerKL}", position + positionX150, Color.Yellow));
+            frame.Add(NewTextSprite($"SC {maxFillK * controller.Settings.PricePerKL}", position + positionX150, Color.Yellow));
             position.Y += 2 * LineSpaceing;
 
             /*            Func<int, Vector2> ph = (x) => { return new Vector2(position.X + x, position.Y); };
                         for (int x = 0; x < viewport.Width; x += 50)
                             frame.Add(NewTextSprite("_", ph(x)));*/
 
-            if (maxFillKL > 0)
+            if (maxFillK > 0)
             {
                 if (controller.enableTransfer.Value)
                     frame.Add(NewTextSprite($"Press button to Stop", position + new Vector2(25, 0), Color.Red));
@@ -92,7 +99,7 @@ namespace Catopia.GasStation
         {
             var frame = GetFrame();
             var position = new Vector2(5, 0);
-            var positionX150 = new Vector2(150, 0);
+            var positionX150 = new Vector2(170, 0);
             //Func<int, Vector2> ph = (x) => { return new Vector2(position.X + x, position.Y); };
             //for (int x = 0; x < viewport.Width; x += 50)
             //    frame.Add(NewTextSprite("_", ph(x)));
@@ -101,12 +108,12 @@ namespace Catopia.GasStation
             frame.Add(NewTextSprite($"'{controller.block.CubeGrid.DisplayName}'", position + positionX150, Color.Cyan));
             position.Y += LineSpaceing;
 
-            frame.Add(NewTextSprite("Gas Available:", position));
+            frame.Add(NewTextSprite($"{unitName} Available:", position));
             var availableKL = (int)controller.energyPump.SourceEnergy.TotalAvailable / 1000;
-            frame.Add(NewTextSprite($"{availableKL}KL", position + positionX150, availableKL > 0 ? Color.Green : Color.Red));
+            frame.Add(NewTextSprite($"{availableKL}{unitName}", position + positionX150, availableKL > 0 ? Color.Green : Color.Red));
             position.Y += LineSpaceing;
 
-            frame.Add(NewTextSprite("Price SC/KL:", position));
+            frame.Add(NewTextSprite($"Price SC/{unitName}:", position));
             frame.Add(NewTextSprite($"SC {controller.Settings.PricePerKL}", position + positionX150));
             position.Y += LineSpaceing;
 
@@ -136,7 +143,6 @@ namespace Catopia.GasStation
             if (screenText.Count > 11)
                 screenText.RemoveAt(0);
             screenText.Add(text);
-            showCursor = true;
         }
 
         internal void ClearText()
@@ -158,12 +164,6 @@ namespace Catopia.GasStation
                 frame.Add(NewTextSprite(line, position, GreenCRT));
                 position.Y += LineSpaceing;
             }
-
-            if (showCursor)
-            {
-                frame.Add(NewTextSprite("|", position, GreenCRT));
-            }
-            showCursor = !showCursor;
 
             frame.Dispose();
         }
