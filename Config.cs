@@ -47,7 +47,9 @@ namespace Catopia.GasStation
             sb.AppendLine("   Each GasStation on this grid needs to be unique [GS1] [GS2] etc.");
             sb.AppendLine("   Terminals of differnet types can share the same identifier");
             sb.AppendLine($"{KeyPricePerK}: For Gas this is KL (1000L) Power is KWh (1000Wh)");
-            sb.AppendLine("   Example H2 2705 based on Ice 50SC/Kg and H2 yield of 19.95L/Kg.");
+            sb.AppendLine("   Examples: H2 2705 based on Ice 50SC/Kg and H2 yield of 19.95L/Kg.");
+            sb.AppendLine("   Power 91, U Ingot 72823SC/Kg @ 1000KWh/Kg & 80% charge efficiency.");
+
             sb.AppendLine($"{KeyCreditMethod}: Where to put earned Space Credits.");
             sb.AppendLine($"   {CreditMethodEnum.TradeConnector.ToString()}: Put Space Credits in the trade connector inventory.");
             sb.AppendLine($"   {CreditMethodEnum.GridOwner.ToString()}: Put Space Credits in the grid owners account.");

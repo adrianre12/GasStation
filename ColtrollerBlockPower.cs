@@ -18,7 +18,7 @@ namespace Catopia.GasStation
         {
             holderName = "batteries";
             energyPump = new PowerPump(stationCubeGrid);
-            screen0 = new ScreenEnergy((IMyTextSurfaceProvider)block, 0, "Power", "KWh", "battery", "batteries");
+            screen0 = new ScreenEnergy((IMyTextSurfaceProvider)block, 0, "Power", "KWh", "battery", "batteries", "Note: Power transfered is before charging losses");
         }
     }
 }

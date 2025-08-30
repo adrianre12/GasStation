@@ -15,8 +15,9 @@ namespace Catopia.GasStation
         private string unitName;
         private string holderPlural;
         private string holderSingular;
+        private string noteLine;
 
-        internal ScreenEnergy(IMyTextSurfaceProvider surfaceProvider, int index, string energyName, string unitName, string holderSingular, string holderPlural)
+        internal ScreenEnergy(IMyTextSurfaceProvider surfaceProvider, int index, string energyName, string unitName, string holderSingular, string holderPlural, string noteLine = "")
         {
             base.Init(surfaceProvider, index);
             DefaultRotationOrScale = 0.85f;
@@ -25,6 +26,7 @@ namespace Catopia.GasStation
             this.unitName = unitName;
             this.holderPlural = holderPlural;
             this.holderSingular = holderSingular;
+            this.noteLine = noteLine;
         }
 
         internal void ScreenDocked(int cashSC, int freeSpaceK, int maxFillK, ControllerBlockBase controller)
@@ -73,11 +75,10 @@ namespace Catopia.GasStation
 
             frame.Add(NewTextSprite("Total Price:", position));
             frame.Add(NewTextSprite($"SC {maxFillK * controller.Settings.PricePerK}", position + positionX150, Color.Yellow));
-            position.Y += 2 * LineSpaceing;
+            position.Y += LineSpaceing;
 
-            /*            Func<int, Vector2> ph = (x) => { return new Vector2(position.X + x, position.Y); };
-                        for (int x = 0; x < viewport.Width; x += 50)
-                            frame.Add(NewTextSprite("_", ph(x)));*/
+            frame.Add(NewTextSprite(noteLine, position, 0.5f));
+            position.Y += LineSpaceing;
 
             if (maxFillK > 0)
             {
