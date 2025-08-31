@@ -7,7 +7,7 @@ using VRage.Game.ModAPI;
 
 namespace Catopia.GasStation.Pump
 {
-    internal abstract class EnergyPumpBase //: IEnergyPumpBase
+    internal abstract class PumpBase //: IEnergyPumpBase
     {
         internal EnergyHolders sourceEnergy = new EnergyHolders();
         public EnergyHolders SourceEnergy { get { return sourceEnergy; } }
@@ -27,7 +27,7 @@ namespace Catopia.GasStation.Pump
             Error
         }
 
-        public EnergyPumpBase(IMyCubeGrid cubeGrid)
+        public PumpBase(IMyCubeGrid cubeGrid)
         {
             stationCubeGrid = cubeGrid as MyCubeGrid;
         }

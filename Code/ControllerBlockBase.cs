@@ -24,7 +24,7 @@ namespace Catopia.GasStation
         private const int DEFAULT_SLEEP_COUNT = 375; //10 mins
 
         internal IMyTextPanel block;
-        internal EnergyPumpBase energyPump;
+        internal PumpBase energyPump;
         internal MySync<bool, SyncDirection.BothWays> enableTransfer;
         internal MySync<bool, SyncDirection.FromServer> enableTransferButton;
         internal MySync<bool, SyncDirection.BothWays> sleepWake;
@@ -276,7 +276,7 @@ namespace Catopia.GasStation
                 int transferedK;
                 switch (energyPump.BatchTransfer(maxFillK, out transferedK))
                 {
-                    case EnergyPumpBase.TransferResult.Continue:
+                    case PumpBase.TransferResult.Continue:
                         {
                             break;
                         }

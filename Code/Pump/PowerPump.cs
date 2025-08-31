@@ -5,7 +5,7 @@ using VRage.Game.ModAPI;
 
 namespace Catopia.GasStation.Pump
 {
-    internal class PowerPump : EnergyPumpBase
+    internal class PowerPump : PumpBase
     {
         public PowerPump(IMyCubeGrid cubeGrid) : base(cubeGrid)
         {

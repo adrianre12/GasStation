@@ -7,11 +7,11 @@ using VRage.Game.ModAPI;
 
 namespace Catopia.GasStation.Pump
 {
-    internal class HydrogenPump : EnergyPumpBase
+    internal class OxygenPump : PumpBase
     {
-        internal static MyDefinitionId H2DefId = MyDefinitionId.Parse("MyObjectBuilder_GasProperties/Hydrogen");
+        internal static MyDefinitionId O2DefId = MyDefinitionId.Parse("MyObjectBuilder_GasProperties/Oxygen");
 
-        public HydrogenPump(IMyCubeGrid cubeGrid) : base(cubeGrid)
+        public OxygenPump(IMyCubeGrid cubeGrid) : base(cubeGrid)
         {
         }
 
@@ -24,7 +24,7 @@ namespace Catopia.GasStation.Pump
             if ((gasTank = fatBlock as IMyGasTank) != null && gasTank.IsWorking && (isTarget || !gasTank.Stockpile))
             {
                 var sb = gasTank.SlimBlock.BlockDefinition as MyGasTankDefinition;
-                if (sb.StoredGasId == H2DefId)
+                if (sb.StoredGasId == O2DefId)
                     energyHolders.Add(new EnergyGas(gasTank));
             }
         }
